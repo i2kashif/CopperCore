@@ -7,19 +7,26 @@
   "scripts": {
     "build": "pnpm -r build",
     "dev": "pnpm -r --parallel dev",
-    "lint": "pnpm -r lint",
+    "lint": "eslint . --ext .ts,.tsx,.js,.jsx,.mjs,.cjs",
+    "lint:fix": "eslint . --ext .ts,.tsx,.js,.jsx,.mjs,.cjs --fix",
     "typecheck": "pnpm -r typecheck",
     "test": "pnpm -r test",
     "test:db": "pnpm -r test:db",
     "e2e": "playwright test",
     "clean": "pnpm -r clean",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "ci:check-lines": "node scripts/ci/check-max-lines.mjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.40.0",
     "@types/node": "^20.8.0",
+    "@typescript-eslint/eslint-plugin": "^7.18.0",
+    "@typescript-eslint/parser": "^7.18.0",
+    "eslint": "^9.9.0",
+    "eslint-plugin-react": "^7.34.3",
+    "globby": "^14.0.1",
     "prettier": "^3.0.0",
-    "typescript": "^5.2.0",
+    "typescript": "^5.5.4",
     "vitest": "^0.34.0"
   },
   "engines": {
