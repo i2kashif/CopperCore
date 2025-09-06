@@ -1,0 +1,18 @@
+# Global ownership
+* @coppercore/architects
+
+# Critical paths requiring Architect + CEO/Director approval  
+/infra/migrations/ @coppercore/architects @coppercore/executives
+/infra/policies/ @coppercore/architects @coppercore/executives
+/apps/api/db/ @coppercore/architects @coppercore/executives
+/apps/web/src/security/ @coppercore/architects @coppercore/executives
+/packages/shared/security* @coppercore/architects @coppercore/executives
+
+# Documentation
+/docs/ @coppercore/docs-pm
+CLAUDE.md @coppercore/architects @coppercore/executives
+SECURITY.md @coppercore/architects @coppercore/executives
+
+# CI/CD and deployment
+/.github/ @coppercore/devops
+/infra/scripts/ @coppercore/devops

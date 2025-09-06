@@ -1,0 +1,60 @@
+# Dependencies
+node_modules/
+.pnpm-debug.log*
+.pnpm-lock.yaml
+
+# Build outputs
+dist/
+build/
+.next/
+.nuxt/
+.vite/
+
+# Environment files
+.env
+.env.*
+!/.env.example
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage reports
+coverage/
+.nyc_output/
+
+# Playwright
+test-results/
+playwright-report/
+playwright/.cache/
+
+# Database
+*.sqlite
+*.sqlite3
+*.db
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# Supabase
+.supabase/
+
+# TypeScript
+*.tsbuildinfo
