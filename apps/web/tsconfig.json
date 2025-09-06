@@ -15,6 +15,7 @@
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
+    "composite": true,
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
@@ -23,5 +24,8 @@
     }
   },
   "include": ["src"],
-  "references": [{ "path": "./tsconfig.node.json" }]
+  "references": [
+    { "path": "./tsconfig.node.json" },
+    { "path": "../../packages/shared" }
+  ]
 }

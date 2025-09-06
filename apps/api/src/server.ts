@@ -45,7 +45,7 @@ server.get('/api/ping', async (request, reply) => {
 
 const start = async () => {
   try {
-    const port = parseInt(server.config.PORT) || 3001
+    const port = parseInt((server as any).config.PORT) || 3001
     await server.listen({ port, host: '0.0.0.0' })
     server.log.info(`🚀 API server ready at http://localhost:${port}`)
   } catch (err) {

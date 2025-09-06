@@ -74,12 +74,12 @@ export async function updateWorkOrderHandler(
   reply: FastifyReply
 ) {
   try {
-    const { id } = request.params
+    const { id } = request.params as { id: string }
     const expectedVersion = validateVersionHeader(request)
-    const updateData = request.body.data
+    const updateData = (request.body as any).data
 
-    // Call database function with optimistic locking
-    const result = await request.server.supabase
+    // Call database function with optimistic locking  
+    const result = await (request.server as any).supabase
       .rpc('update_work_order_safe', {
         p_id: id,
         p_expected_version: expectedVersion,
@@ -102,7 +102,7 @@ export async function updateWorkOrderHandler(
     }
 
     // Set version header for successful updates
-    setVersionHeader(reply, response.data.version)
+    setVersionHeader(reply, (response.data as any).version)
 
     return reply.status(200).send(response)
 
