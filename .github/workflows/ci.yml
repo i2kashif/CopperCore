@@ -2,7 +2,7 @@ name: CI Pipeline (Matrix)
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main, develop, "scaffold/monorepo", "chore/**", "feat/**", "fix/**"]
   pull_request:
     branches: [main, develop]
 
@@ -48,8 +48,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
         
-      - name: Lint
+      - name: Lint (modularity caps)
         run: pnpm -w lint
+        
+      - name: Enforce file size cap
+        run: pnpm -w ci:check-lines
         
       - name: TypeScript check
         run: pnpm -w typecheck

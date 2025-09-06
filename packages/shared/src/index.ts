@@ -1,2 +1,5 @@
 export * from './types/index.js'
 export * from './cache/keys.js'
+export * from './errors/index.js'
+export * from './realtime/index.js'
+export * from './storage/index.js'
