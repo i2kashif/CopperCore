@@ -1,0 +1,21 @@
+{
+  "mcpServers": {
+    "magic-ui": {
+      "command": "npx",
+      "args": ["-y", "@magic-ui/mcp-server"],
+      "env": {
+        "MAGIC_UI_ENV": "development",
+        "MAGIC_UI_PROJECT_ROOT": "/Users/ibrahimkashif/Desktop/CopperCore"
+      }
+    },
+    "puppeteer": {
+      "command": "npx", 
+      "args": ["-y", "@modelcontextprotocol/server-puppeteer"],
+      "env": {
+        "PUPPETEER_EXECUTABLE_PATH": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        "PUPPETEER_HEADLESS": "true",
+        "PUPPETEER_DEV_ONLY": "true"
+      }
+    }
+  }
+}
