@@ -13,6 +13,11 @@
 - [ ] E2E tests covering new flows
 - [ ] Manual testing completed
 
+## Modularity (CLAUDE.md §13)
+- [ ] No file > 500 lines (or explicit justification + ADR)
+- [ ] No function > 80 lines
+- [ ] Complexity reasonable (≤12) or refactor plan attached
+
 ## Risk & Rollback
 <!-- What could go wrong? How to revert if needed? -->
 
