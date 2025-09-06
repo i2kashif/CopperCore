@@ -52,13 +52,13 @@
 - 🟩 F-4: Rollback template + backup/PITR checklist • **Owner:** DevOps • PR: .github/ROLLBACK_TEMPLATE.md + BACKUP_PITR_CHECKLIST.md
 
 ## G) Test & QA Blueprint (PRD §12)
-- 🟦 G-1: Map acceptance tests to specs (Given/When/Then) • **Owner:** QA • PR:
-- 🟦 G-2: RLS assertions per role (CEO/Director/FM/FW) • **Owner:** QA • PR:
-- 🟦 G-3: Backdating tests (CEO/Director only; audited) • **Owner:** QA • PR:
+- 🟩 G-1: Map acceptance tests to specs (Given/When/Then) • **Owner:** QA • PR: tests/acceptance/ACCEPTANCE_TEST_SPECS.md
+- 🟩 G-2: RLS assertions per role (CEO/Director/FM/FW) • **Owner:** QA • PR: tests/rls/RLS_ROLE_ASSERTIONS.md
+- 🟩 G-3: Backdating tests (CEO/Director only; audited) • **Owner:** QA • PR: tests/backdating/BACKDATING_TESTS.md
 
 ## H) Security & Guardrails (Claude-aware)
-- 🟦 H-1: Diff guards for `/infra/policies/**` and `number_series*` • **Owner:** DevOps • PR:
-- 🟦 H-2: Manual approval checklist embedded in PR template • **Owner:** Docs/PM • PR:
+- 🟩 H-1: Diff guards for `/infra/policies/**` and `number_series*` • **Owner:** DevOps • PR: .github/workflows/security-checks.yml
+- 🟩 H-2: Manual approval checklist embedded in PR template • **Owner:** Docs/PM • PR: Enhanced .github/pull_request_template.md
 
 ## I) Milestones (90-day)
 - 🟦 I-1: **M1 (Weeks 1–4)** — DB/RLS foundation, WO core, audit chain, realtime wiring, seed data • **Owner:** Architect • PR(s):
