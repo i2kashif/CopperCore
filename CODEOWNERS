@@ -1,0 +1,29 @@
+# CODEOWNERS for CopperCore ERP
+# Replace i2kashif with your actual handle (single-user is fine).
+# These owners will be requested for review on PRs that touch the paths below.
+
+# Default owner (fallback)
+*                                      i2kashif
+
+# High-sensitivity areas (request explicit review)
+# Schema, RLS/policies, migrations
+/infra/**                               i2kashif
+/infra/migrations/**                    i2kashif
+/infra/policies/**                      i2kashif
+
+# Security docs & guardrails
+/SECURITY.md                            i2kashif
+/docs/security/**                       i2kashif
+
+# PRD and ADRs (treat as single source of truth)
+/docs/PRD/**                            i2kashif
+/docs/adr/**                            i2kashif
+/DECISIONS.md                           i2kashif
+
+# App surfaces
+/apps/web/**                            i2kashif
+/apps/api/**                            i2kashif
+/packages/shared/**                     i2kashif
+
+# CI
+/.github/**                             i2kashif
