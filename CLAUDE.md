@@ -47,7 +47,7 @@ For the **complete agent/sub-agent plan** — role scopes, allowed MCP tools, ex
 ## 3) Day-to-Day Workflows
 
 ### 3.1 Anchor to PRD-v1.5.md
-1) Open `docs/PRD_v1.5.md`.  
+1) Open `docs/PRD/PRD-v1.5.md`.  
 2) Extract relevant sections (e.g., §5.3 WO, §5.7 GRN, §3.7 Realtime).  
 3) List these constraints in the PR description before coding.
 
@@ -165,3 +165,14 @@ Claude: at session start, **read** it; at session end, **update**:
 
 The current Product Requirements Document is here: `docs/PRD/PRD-v1.5.md`.  
 Treat this file as the **single source of truth** for domain rules, workflows, roles, Pakistan regulatory controls, Supabase platform choices, realtime/cache policy, RLS, and acceptance tests.
+
+## 13) Code Modularity & Size Limits
+
+**Goal:** keep files small and maintainable.
+
+- **Hard caps:** max **500 lines per file**, max **80 lines per function**, cyclomatic **complexity ≤ 12**.
+- **Split rule:** if a file risks exceeding caps, **split** before continuing. Use feature folders and barrel exports.
+- **Structure (frontend):** `src/features/<area>/{components/, hooks/, api.ts, types.ts, validators.ts, routes.tsx}`.
+- **Structure (backend):** `src/modules/<entity>/{routes.ts, service.ts, repo.ts, schema.ts, types.ts}`.
+- **Migrations:** one logical change per file (prefer multiple small migrations over one huge file).
+- **Agents:** never introduce files >500 lines without an ADR **and** “Requires Approval”. Propose a split plan instead.
