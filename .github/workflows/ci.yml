@@ -199,7 +199,7 @@ jobs:
         run: echo "Skipping E2E tests temporarily - will enable after application is built"
         
       - name: Upload Playwright report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: playwright-report
@@ -234,7 +234,7 @@ jobs:
         run: echo "Skipping build temporarily - will enable after source code is complete"
         
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: build-artifacts
           path: |

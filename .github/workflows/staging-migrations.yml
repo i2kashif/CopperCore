@@ -84,7 +84,7 @@ jobs:
           psql "$TEST_DB_URL" -c "\dt" >> migration_summary.md
           
       - name: Upload migration artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: migration-summary
           path: migration_summary.md

@@ -95,7 +95,7 @@ jobs:
             packages/shared/dist
             
       - name: Upload production artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: production-build-${{ needs.validate-release.outputs.version }}
           path: production-build-${{ needs.validate-release.outputs.version }}.tar.gz
