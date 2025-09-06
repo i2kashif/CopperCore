@@ -14,6 +14,7 @@ Default to **least privilege**, **plan → code → test** loops, and **reviewed
 - **Separation of concerns:** Do **not** alter **pricing**, **numbering/series**, **RLS/policies**, **audit/backdating**, or **QC override semantics** without explicit approval (see §2.2 and §7).  
 - **Factories & RLS:** All work must enforce **factory scoping** via Postgres RLS; CEO/Director are global exceptions per PRD.  
 - **Context hygiene:** Prefer reading specific files or the prompt library index instead of pasting large code blobs into chat.
+- **Session continuity:** At session start, read `/docs/logs/SESSION_MEMORY.md` to understand recent multi-session work and maintain context across conversations.
 
 ---
 
