@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "testsprite": {
+      "command": "python",
+      "args": ["-m", "testsprite", "--mode", "mcp"],
+      "env": {
+        "TESTSPRITE_API_KEY": "${TESTSPRITE_API_KEY}",
+        "TESTSPRITE_PROJECT_ROOT": "/Users/ibrahimkashif/Desktop/CopperCore",
+        "TESTSPRITE_FRAMEWORKS": "playwright,vitest,jest"
+      }
+    }
+  }
+}

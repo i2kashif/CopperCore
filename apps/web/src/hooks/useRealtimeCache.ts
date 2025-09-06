@@ -30,12 +30,12 @@ export function useRealtimeCache(factoryId: string) {
           schema: 'public',
           filter: `factory_id=eq.${factoryId}` 
         }, 
-        (payload) => {
+        (payload: any) => {
           const realtimePayload: RealtimePayload = {
             type: payload.table || 'unknown',
             id: payload.new?.id || payload.old?.id || '',
             factoryId: factoryId,
-            action: payload.eventType as any,
+            action: payload.eventType as 'INSERT' | 'UPDATE' | 'DELETE',
             version: payload.new?.version,
             ts: new Date().toISOString()
           }

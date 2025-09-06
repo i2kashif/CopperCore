@@ -1,7 +1,6 @@
 # Dependencies
 node_modules/
 .pnpm-debug.log*
-.pnpm-lock.yaml
 
 # Build outputs
 dist/
@@ -26,13 +25,15 @@ build/
 .DS_Store
 Thumbs.db
 
-# Logs
+# Logs (but not docs/logs/ which contains project documentation)
 *.log
-logs/
+/logs/
 pids/
 *.pid
 *.seed
 *.pid.lock
+# Keep docs/logs/ for project documentation
+!/docs/logs/
 
 # Coverage reports
 coverage/

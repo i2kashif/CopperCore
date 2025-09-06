@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "--allowed-dirs", "/Users/ibrahimkashif/Desktop/CopperCore"],
+      "env": {
+        "MCP_FILESYSTEM_ALLOWED_DIRS": "/Users/ibrahimkashif/Desktop/CopperCore"
+      }
+    }
+  }
+}

@@ -1,0 +1,183 @@
+name: Staging-First Migrations
+
+on:
+  push:
+    paths:
+      - 'infra/migrations/**'
+      - 'infra/policies/**' 
+      - 'infra/scripts/**'
+    branches: [main, develop]
+  
+  # Manual trigger for emergency migrations
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+      create_pitr:
+        description: 'Create PITR checkpoint before migration'
+        required: true
+        default: true
+        type: boolean
+
+env:
+  NODE_VERSION: "18"
+  PNPM_VERSION: "8.10.0"
+
+jobs:
+  # Stage 1: Validate migrations in test environment
+  validate-migrations:
+    name: "Validate Migrations (Test DB)"
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: coppercore_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+          
+    env:
+      TEST_DB_URL: postgresql://postgres:postgres@localhost:5432/coppercore_test
+      
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Validate migration files
+        run: |
+          echo "🔍 Validating migration file naming..."
+          cd infra/migrations
+          for file in *.sql; do
+            if [[ ! "$file" =~ ^[0-9]{3}_[a-z_]+\.sql$ ]]; then
+              echo "❌ Invalid migration filename: $file"
+              echo "   Expected format: 000_description.sql"
+              exit 1
+            fi
+          done
+          echo "✅ All migration files follow naming convention"
+          
+      - name: Test migrations (dry run)
+        run: |
+          echo "🧪 Running migration dry run..."
+          ./infra/scripts/migrate.sh
+          
+      - name: Generate migration summary
+        run: |
+          echo "📋 Migration Summary" > migration_summary.md
+          echo "==================" >> migration_summary.md
+          echo "" >> migration_summary.md
+          echo "**Changed Files:**" >> migration_summary.md
+          git diff --name-only HEAD~1 HEAD | grep -E "(migrations|policies)" >> migration_summary.md || echo "No migration files changed"
+          echo "" >> migration_summary.md
+          echo "**Database Schema Changes:**" >> migration_summary.md
+          psql "$TEST_DB_URL" -c "\dt" >> migration_summary.md
+          
+      - name: Upload migration artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: migration-summary
+          path: migration_summary.md
+
+  # Stage 2: Apply to staging environment
+  staging-migration:
+    name: "Apply to Staging"
+    runs-on: ubuntu-latest
+    needs: validate-migrations
+    if: github.ref == 'refs/heads/develop' || github.event_name == 'workflow_dispatch'
+    environment: staging
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Create PITR checkpoint
+        if: inputs.create_pitr != 'false'
+        run: |
+          echo "📸 Creating PITR checkpoint before migration..."
+          echo "Timestamp: $(date -u +%Y%m%d_%H%M%S)"
+          # TODO: Add actual Supabase PITR checkpoint creation
+          echo "⚠️  Manual step: Create PITR checkpoint in Supabase dashboard"
+          
+      - name: Apply migrations to staging
+        env:
+          DATABASE_URL: ${{ secrets.SUPABASE_STAGING_URL }}
+        run: |
+          echo "🚀 Applying migrations to staging environment..."
+          ./infra/scripts/migrate.sh
+          
+      - name: Verify staging deployment
+        env:
+          DATABASE_URL: ${{ secrets.SUPABASE_STAGING_URL }}
+        run: |
+          echo "🔍 Verifying staging database state..."
+          psql "$DATABASE_URL" -c "SELECT version(), current_database(), current_user;"
+          ./infra/scripts/migrate.sh # Re-run to ensure idempotency
+
+  # Stage 3: Production deployment (release tags only)
+  production-migration:
+    name: "Apply to Production (Release Only)"
+    runs-on: ubuntu-latest
+    needs: staging-migration
+    if: startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && inputs.environment == 'production')
+    environment: production
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Verify release tag
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          echo "🏷️  Production deployment for release: ${GITHUB_REF#refs/tags/}"
+          echo "✅ Release tag validation passed"
+          
+      - name: Mandatory PITR checkpoint
+        run: |
+          echo "📸 Creating MANDATORY PITR checkpoint for production..."
+          echo "Release: ${GITHUB_REF#refs/tags/}"
+          echo "Timestamp: $(date -u +%Y%m%d_%H%M%S)"
+          echo ""
+          echo "⚠️  CRITICAL: Manual verification required!"
+          echo "   1. Create PITR checkpoint in Supabase dashboard"
+          echo "   2. Verify backup completion"
+          echo "   3. Document checkpoint ID in deployment notes"
+          
+      - name: Production pre-flight check
+        env:
+          DATABASE_URL: ${{ secrets.SUPABASE_PRODUCTION_URL }}
+        run: |
+          echo "✈️  Production pre-flight check..."
+          psql "$DATABASE_URL" -c "SELECT 'Production DB Connection: OK';"
+          
+      - name: Apply migrations to production
+        env:
+          DATABASE_URL: ${{ secrets.SUPABASE_PRODUCTION_URL }}
+        run: |
+          echo "🚀 Applying migrations to PRODUCTION environment..."
+          echo "⚠️  This will modify production data!"
+          ./infra/scripts/migrate.sh
+          
+      - name: Post-deployment verification
+        env:
+          DATABASE_URL: ${{ secrets.SUPABASE_PRODUCTION_URL }}
+        run: |
+          echo "🔍 Post-deployment verification..."
+          psql "$DATABASE_URL" -c "
+            SELECT 
+              'Production migration completed at: ' || NOW()::text as status;
+          "
+          
+      - name: Notify deployment success
+        run: |
+          echo "🎉 Production migration completed successfully!"
+          echo "Release: ${GITHUB_REF#refs/tags/}"
+          echo "Timestamp: $(date -u)"

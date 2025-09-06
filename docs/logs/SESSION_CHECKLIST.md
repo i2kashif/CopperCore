@@ -22,43 +22,43 @@
 ---
 
 ## C) Monorepo Scaffold
-- 🟦 C-1: Root workspace (`package.json`, `pnpm-workspace.yaml`, `tsconfig.base.json`, `.gitignore`, `.env.example`) • **Owner:** Architect • PR:
-- 🟦 C-2: `apps/web` (Vite + React + TanStack + Tailwind minimal) • **Owner:** Frontend • PR:
-- 🟦 C-3: `packages/shared` (zod types + cache keys) • **Owner:** Backend • PR:
-- 🟦 C-4: `infra` (migrations `000_base.sql`, `010_tables_min.sql`; `seed/seed.sql`; `scripts/migrate.sh`) • **Owner:** Architect • PR:
-- 🟦 C-5: `.github/workflows/ci.yml` (lint/type/unit → db/rls → e2e → build) • **Owner:** DevOps • PR:
-- 🟦 C-6: Docs (`ARCHITECTURE.md`, `DECISIONS.md` + 2 ADRs, `SECURITY.md`) • **Owner:** Docs/PM • PR:
-- 🟦 C-7: `apps/api` Fastify stub (optional) • **Owner:** Backend • PR:
+- 🟩 C-1: Root workspace (`package.json`, `pnpm-workspace.yaml`, `tsconfig.base.json`, `.gitignore`, `.env.example`) • **Owner:** Architect • PR: scaffold/monorepo
+- 🟩 C-2: `apps/web` (Vite + React + TanStack + Tailwind minimal) • **Owner:** Frontend • PR: scaffold/monorepo
+- 🟩 C-3: `packages/shared` (zod types + cache keys) • **Owner:** Backend • PR: scaffold/monorepo
+- 🟩 C-4: `infra` (migrations `000_base.sql`, `010_tables_min.sql`; `seed/seed.sql`; `scripts/migrate.sh`) • **Owner:** Architect • PR: scaffold/monorepo
+- 🟩 C-5: `.github/workflows/ci.yml` (lint/type/unit → db/rls → e2e → build) • **Owner:** DevOps • PR: scaffold/monorepo
+- 🟩 C-6: Docs (`ARCHITECTURE.md`, `DECISIONS.md` + 2 ADRs, `SECURITY.md`) • **Owner:** Docs/PM • PR: scaffold/monorepo
+- 🟩 C-7: `apps/api` Fastify stub (optional) • **Owner:** Backend • PR: scaffold/monorepo
 
 ## D) Supabase / Postgres Config Pack
-- 🟦 D-1: RLS policy templates (factory_id, CEO/Director bypass, WITH CHECK) • **Owner:** Architect • PR:
-- 🟦 D-2: Optimistic locking templates (version/updated_at + 409) • **Owner:** Backend • PR:
-- 🟦 D-3: Tamper-evident audit chain templates • **Owner:** Architect • PR:
-- 🟦 D-4: Realtime payload spec + cache key map • **Owner:** Frontend • PR:
-- 🟦 D-5: Storage bucket policy stubs (PDFs with signed URLs) • **Owner:** Architect • PR:
+- 🟩 D-1: RLS policy templates (factory_id, CEO/Director bypass, WITH CHECK) • **Owner:** Architect • PR: feat/supabase-config-pack
+- 🟩 D-2: Optimistic locking templates (version/updated_at + 409) • **Owner:** Backend • PR: feat/supabase-config-pack
+- 🟩 D-3: Tamper-evident audit chain templates • **Owner:** Architect • PR: feat/supabase-config-pack
+- 🟩 D-4: Realtime payload spec + cache key map • **Owner:** Frontend • PR: feat/supabase-config-pack
+- 🟩 D-5: Storage bucket policy stubs (PDFs with signed URLs) • **Owner:** Architect • PR: feat/supabase-config-pack
 
 ## E) MCP Tools: Config Examples (least-privilege)
-- 🟦 E-1: GitHub (read/PR scope) • **Owner:** DevOps • PR:
-- 🟦 E-2: Filesystem (repo-root only) • **Owner:** DevOps • PR:
-- 🟦 E-3: Supabase/Postgres (dev RW, prod RO) • **Owner:** Architect • PR:
-- 🟦 E-4: Web/Search (vendor docs) • **Owner:** Docs/PM • PR:
-- 🟦 E-5: TestSprite (QA gen/run; PR suggestions only) • **Owner:** QA • PR:
-- 🟦 E-6: Magic UI + Puppeteer (dev only) • **Owner:** Frontend • PR:
+- 🟩 E-1: GitHub (read/PR scope) • **Owner:** DevOps • PR: config/mcp-tools
+- 🟩 E-2: Filesystem (repo-root only) • **Owner:** DevOps • PR: config/mcp-tools
+- 🟩 E-3: Supabase/Postgres (dev RW, prod RO) • **Owner:** Architect • PR: config/mcp-tools
+- 🟩 E-4: Web/Search (vendor docs) • **Owner:** Docs/PM • PR: config/mcp-tools
+- 🟩 E-5: TestSprite (QA gen/run; PR suggestions only) • **Owner:** QA • PR: config/mcp-tools
+- 🟩 E-6: Magic UI + Puppeteer (dev only) • **Owner:** Frontend • PR: config/mcp-tools
 
 ## F) CI/CD & Environments
-- 🟦 F-1: Branch protection (trunk + short-lived feature branches) • **Owner:** DevOps • PR/Settings:
-- 🟦 F-2: Matrix pipeline (unit → DB+RLS → e2e → build) • **Owner:** DevOps • PR:
-- 🟦 F-3: Staging-first migrations; Prod on release tag + PITR note • **Owner:** DevOps • PR:
-- 🟦 F-4: Rollback template + backup/PITR checklist • **Owner:** DevOps • PR:
+- 🟩 F-1: Branch protection (trunk + short-lived feature branches) • **Owner:** DevOps • PR/Settings: .github/BRANCH_PROTECTION.md
+- 🟩 F-2: Matrix pipeline (unit → DB+RLS → e2e → build) • **Owner:** DevOps • PR: Enhanced .github/workflows/ci.yml
+- 🟩 F-3: Staging-first migrations; Prod on release tag + PITR note • **Owner:** DevOps • PR: .github/workflows/staging-migrations.yml + release.yml
+- 🟩 F-4: Rollback template + backup/PITR checklist • **Owner:** DevOps • PR: .github/ROLLBACK_TEMPLATE.md + BACKUP_PITR_CHECKLIST.md
 
 ## G) Test & QA Blueprint (PRD §12)
-- 🟦 G-1: Map acceptance tests to specs (Given/When/Then) • **Owner:** QA • PR:
-- 🟦 G-2: RLS assertions per role (CEO/Director/FM/FW) • **Owner:** QA • PR:
-- 🟦 G-3: Backdating tests (CEO/Director only; audited) • **Owner:** QA • PR:
+- 🟩 G-1: Map acceptance tests to specs (Given/When/Then) • **Owner:** QA • PR: tests/acceptance/ACCEPTANCE_TEST_SPECS.md
+- 🟩 G-2: RLS assertions per role (CEO/Director/FM/FW) • **Owner:** QA • PR: tests/rls/RLS_ROLE_ASSERTIONS.md
+- 🟩 G-3: Backdating tests (CEO/Director only; audited) • **Owner:** QA • PR: tests/backdating/BACKDATING_TESTS.md
 
 ## H) Security & Guardrails (Claude-aware)
-- 🟦 H-1: Diff guards for `/infra/policies/**` and `number_series*` • **Owner:** DevOps • PR:
-- 🟦 H-2: Manual approval checklist embedded in PR template • **Owner:** Docs/PM • PR:
+- 🟩 H-1: Diff guards for `/infra/policies/**` and `number_series*` • **Owner:** DevOps • PR: .github/workflows/security-checks.yml
+- 🟩 H-2: Manual approval checklist embedded in PR template • **Owner:** Docs/PM • PR: Enhanced .github/pull_request_template.md
 
 ## I) Milestones (90-day)
 - 🟦 I-1: **M1 (Weeks 1–4)** — DB/RLS foundation, WO core, audit chain, realtime wiring, seed data • **Owner:** Architect • PR(s):

@@ -6,7 +6,9 @@ export const cacheKeys = {
     all: ['work_orders'] as const,
     lists: () => [...cacheKeys.workOrders.all, 'list'] as const,
     list: (factoryId: string, filters?: Record<string, any>) =>
-      [...cacheKeys.workOrders.lists(), factoryId, filters] as const,
+      filters 
+        ? [...cacheKeys.workOrders.lists(), factoryId, filters] as const
+        : [...cacheKeys.workOrders.lists(), factoryId] as const,
     details: () => [...cacheKeys.workOrders.all, 'detail'] as const,
     detail: (id: string) => [...cacheKeys.workOrders.details(), id] as const,
   },
@@ -16,7 +18,9 @@ export const cacheKeys = {
     all: ['packing_units'] as const,
     lists: () => [...cacheKeys.packingUnits.all, 'list'] as const,
     list: (factoryId: string, filters?: Record<string, any>) =>
-      [...cacheKeys.packingUnits.lists(), factoryId, filters] as const,
+      filters 
+        ? [...cacheKeys.packingUnits.lists(), factoryId, filters] as const
+        : [...cacheKeys.packingUnits.lists(), factoryId] as const,
     details: () => [...cacheKeys.packingUnits.all, 'detail'] as const,
     detail: (id: string) => [...cacheKeys.packingUnits.details(), id] as const,
     byCode: (puCode: string, factoryId: string) =>
@@ -28,7 +32,9 @@ export const cacheKeys = {
     all: ['dispatch_notes'] as const,
     lists: () => [...cacheKeys.dispatchNotes.all, 'list'] as const,
     list: (factoryId: string, filters?: Record<string, any>) =>
-      [...cacheKeys.dispatchNotes.lists(), factoryId, filters] as const,
+      filters 
+        ? [...cacheKeys.dispatchNotes.lists(), factoryId, filters] as const
+        : [...cacheKeys.dispatchNotes.lists(), factoryId] as const,
     details: () => [...cacheKeys.dispatchNotes.all, 'detail'] as const,
     detail: (id: string) => [...cacheKeys.dispatchNotes.details(), id] as const,
   },
@@ -38,7 +44,9 @@ export const cacheKeys = {
     all: ['grns'] as const,
     lists: () => [...cacheKeys.grns.all, 'list'] as const,
     list: (factoryId: string, filters?: Record<string, any>) =>
-      [...cacheKeys.grns.lists(), factoryId, filters] as const,
+      filters 
+        ? [...cacheKeys.grns.lists(), factoryId, filters] as const
+        : [...cacheKeys.grns.lists(), factoryId] as const,
     details: () => [...cacheKeys.grns.all, 'detail'] as const,
     detail: (id: string) => [...cacheKeys.grns.details(), id] as const,
     byDispatchNote: (dnId: string, factoryId: string) =>
@@ -52,7 +60,9 @@ export const cacheKeys = {
     lot: (lotId: string, factoryId: string) =>
       [...cacheKeys.inventory.all, 'lot', lotId, factoryId] as const,
     movements: (factoryId: string, filters?: Record<string, any>) =>
-      [...cacheKeys.inventory.all, 'movements', factoryId, filters] as const,
+      filters 
+        ? [...cacheKeys.inventory.all, 'movements', factoryId, filters] as const
+        : [...cacheKeys.inventory.all, 'movements', factoryId] as const,
   },
 
   // Testing/QC - factory scoped
