@@ -46,10 +46,10 @@
 - 🟩 E-6: Magic UI + Puppeteer (dev only) • **Owner:** Frontend • PR: config/mcp-tools
 
 ## F) CI/CD & Environments
-- 🟦 F-1: Branch protection (trunk + short-lived feature branches) • **Owner:** DevOps • PR/Settings:
-- 🟦 F-2: Matrix pipeline (unit → DB+RLS → e2e → build) • **Owner:** DevOps • PR:
-- 🟦 F-3: Staging-first migrations; Prod on release tag + PITR note • **Owner:** DevOps • PR:
-- 🟦 F-4: Rollback template + backup/PITR checklist • **Owner:** DevOps • PR:
+- 🟩 F-1: Branch protection (trunk + short-lived feature branches) • **Owner:** DevOps • PR/Settings: .github/BRANCH_PROTECTION.md
+- 🟩 F-2: Matrix pipeline (unit → DB+RLS → e2e → build) • **Owner:** DevOps • PR: Enhanced .github/workflows/ci.yml
+- 🟩 F-3: Staging-first migrations; Prod on release tag + PITR note • **Owner:** DevOps • PR: .github/workflows/staging-migrations.yml + release.yml
+- 🟩 F-4: Rollback template + backup/PITR checklist • **Owner:** DevOps • PR: .github/ROLLBACK_TEMPLATE.md + BACKUP_PITR_CHECKLIST.md
 
 ## G) Test & QA Blueprint (PRD §12)
 - 🟦 G-1: Map acceptance tests to specs (Given/When/Then) • **Owner:** QA • PR:
