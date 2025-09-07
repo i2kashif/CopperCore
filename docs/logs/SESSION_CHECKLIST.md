@@ -19,11 +19,11 @@
 ---
 
 ## Now (Next 5 - Priority Implementation Queue)
-- 🟦 F-1.1: WO Material Return Constraints (returns ≤ issued per lot) • **Owner:** Backend • PRD §5.3, §12.1 • Acceptance ID: 12.1
-- 🟦 F-2.1: PU Label Reprint & Invalidation (old codes inactive) • **Owner:** Frontend+Backend • PRD §5.5, §12.3 • Acceptance ID: 12.3  
-- 🟦 F-6.1: Realtime Infrastructure Foundation (entity-scoped channels) • **Owner:** Frontend+Architect • PRD §3.7, §12.7 • Acceptance ID: 12.7
-- 🟦 F-3.1: DN Rejection with Realtime Updates (draft revert + PU availability) • **Owner:** Backend+Frontend • PRD §5.6, §12.4, §3.7 • Acceptance ID: 12.4
-- 🟦 F-1.2: WO Production Log Validation (machine required, scrap tracking) • **Owner:** Backend • PRD §5.3, §3.4
+- 🟦 UI-1: Authentication System Foundation (Supabase Auth + factory selection + role-based routing) • **Owner:** Frontend+Backend • PRD §2 (roles), §10 (auth) • Foundation for all UI
+- 🟦 UI-2: Manage Company Dashboard (CEO: factories, users, factory assignments) • **Owner:** Frontend+Backend • PRD §5.12, §2.2 • Core admin functionality  
+- 🟦 UI-3: User Profile & Factory Context (factory switching, role display, session management) • **Owner:** Frontend • PRD §2.2 (factory linkage) • Session context foundation
+- 🟦 F-6.1: Realtime Infrastructure Foundation (entity-scoped channels + cache invalidation) • **Owner:** Frontend+Architect • PRD §3.7, §12.7 • Acceptance ID: 12.7 • Supports all future UI updates
+- 🟦 F-1.1: WO Material Return Constraints (returns ≤ issued per lot + validation) • **Owner:** Backend • PRD §5.3, §12.1 • Acceptance ID: 12.1 • Business logic foundation
 
 ---
 
@@ -40,14 +40,17 @@
 
 ## Todo
 
-### M2: Logistics & Scanning (Weeks 5–8)
-- 🟦 F-2.2: Scanner Error Handling & Recovery (mis-scan + duplicate prevention) • **Owner:** Frontend • PRD §5.5
+### UI Foundation Phase (Post-Auth)
+- 🟦 UI-4: Product Family Management UI (CEO: create/edit families + attributes configuration) • **Owner:** Frontend+Backend • PRD §5.1, §3.1 • Product setup foundation
+- 🟦 UI-5: SKU Catalog Management (CEO/Director: bulk generation, family-based SKU creation) • **Owner:** Frontend+Backend • PRD §5.2, §3.2 • Inventory foundation
+- 🟦 UI-6: Basic Work Order Creation (Director: create WO with SKU selection + factory assignment) • **Owner:** Frontend+Backend • PRD §5.3 • Operations entry point
+
+### M2: Core Business Workflows (Weeks 5–8)  
+- 🟦 F-1.2: WO Production Log Validation (machine required, scrap tracking) • **Owner:** Backend • PRD §5.3, §3.4
+- 🟦 F-2.1: PU Label Reprint & Invalidation (old codes inactive + scanner integration) • **Owner:** Frontend+Backend • PRD §5.5, §12.3 • Acceptance ID: 12.3
+- 🟦 F-3.1: DN Rejection with Realtime Updates (draft revert + PU availability) • **Owner:** Backend+Frontend • PRD §5.6, §12.4, §3.7 • Acceptance ID: 12.4
 - 🟦 F-3.2: GRN Discrepancy Management (short/over/damaged capture) • **Owner:** Backend+QA • PRD §5.7, §12.5 • Acceptance ID: 12.5
-- 🟦 F-4.1: Pending SKU Request & Proceed (FM→CEO approval flow) • **Owner:** Backend+Frontend • PRD §5.2, §12.2 • Acceptance ID: 12.2
-- 🟦 I-2.1: Packing Units & Labels (PU creation + barcode + reprint flow) • **Owner:** Backend • PR(s):
-- 🟦 I-2.2: Packing Lists & Scanner Flows (scanner-first + live tally) • **Owner:** Frontend • PR(s):
-- 🟦 I-2.3: Dispatch Note Lifecycle (create/verify/approve + rejection) • **Owner:** Backend • PR(s):
-- 🟦 I-2.4: GRN & Discrepancies (DN-first + discrepancy capture) • **Owner:** Backend • PR(s):
+- 🟦 F-2.2: Scanner Error Handling & Recovery (mis-scan + duplicate prevention) • **Owner:** Frontend • PRD §5.5
 
 ### M3: Business Logic & QC (Weeks 9–12)  
 - 🟦 F-5.1: QC Blocking Matrix Implementation (FAIL/HOLD cannot pack) • **Owner:** Backend+Architect • PRD §3.5/§5.10, §12.6 • Acceptance ID: 12.6
