@@ -2,6 +2,7 @@
 
 > One-liners with links to full entries in per-agent logs. Newest first.
 
+- **2025-09-06 • Architect** — M1.1 Database Schema Foundation COMPLETE: Factory-scoped RLS, tamper-evident audit chain, configurable product families, WO material tracking. Requires approval (schema/RLS/audit changes). [Branch: feat/m1-1-database-schema-foundation] • [Entry](./agents/architect.log.md#2025-09-06-architect-3)
 - **2025-09-06 • Multi-Role** — Infrastructure foundation COMPLETE: F) CI/CD & Environments, G) Test & QA Blueprint, H) Security & Guardrails. Project ready for CopperCore ERP implementation. [Branch: config/mcp-tools] • [Entry](./agents/devops.log.md#2025-09-06-devops-3)
 - **2025-09-06 • DevOps** — Complete E-1 to E-6 MCP Tools config pack: GitHub, Filesystem, Supabase, Web Search, TestSprite, Magic UI + Puppeteer with least-privilege security. [Branch: config/mcp-tools](#) • [Entry](./agents/devops.log.md#2025-09-06-devops-2)
 - **2024-09-06 • Architect** — Completed Supabase config pack (D-1 to D-5): RLS templates, optimistic locking, audit chain, realtime, storage policies. [Branch: feat/supabase-config-pack](#) • [Entry](./agents/architect.log.md#2024-09-06-architect-2)

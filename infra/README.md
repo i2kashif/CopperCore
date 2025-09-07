@@ -28,7 +28,7 @@ infra/
 
 ### 1. Run Migrations
 ```bash
-export TEST_DB_URL="postgresql://user:pass@localhost:5432/coppercore_dev"
+export DATABASE_URL="postgresql://user:pass@localhost:5432/coppercore_dev"
 ./infra/scripts/migrate.sh
 ```
 

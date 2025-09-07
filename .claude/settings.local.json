@@ -9,7 +9,19 @@
       "Bash(git push:*)",
       "Bash(psql:*)",
       "Bash(pnpm -w build)",
-      "Bash(pnpm run:*)"
+      "Bash(pnpm run:*)",
+      "Bash(gh repo view:*)",
+      "Bash(gh auth:*)",
+      "Bash(git checkout:*)",
+      "Bash(if grep -r \"TEST_DB_URL\\|SUPABASE_STAGING_URL\\|SUPABASE_PRODUCTION_URL\\|SUPABASE_DATABASE_URL\" apps/ packages/ infra/ --exclude-dir=node_modules --exclude=\"*.log\")",
+      "Bash(then echo \"FOUND MATCHES\")",
+      "Bash(exit 1)",
+      "Bash(else echo \"NO MATCHES FOUND\")",
+      "Bash(exit 0)",
+      "Bash(fi)",
+      "Bash(then echo \"⚠️  Found non-canonical env var names. Use DATABASE_URL, SUPABASE_URL, SUPABASE_ANON_KEY instead\")",
+      "mcp__ide__getDiagnostics",
+      "Bash(/dev/null)"
     ],
     "deny": [],
     "ask": []

@@ -8,11 +8,11 @@ set -e
 MIGRATIONS_DIR="$(cd "$(dirname "$0")/../migrations" && pwd)"
 POLICIES_DIR="$(cd "$(dirname "$0")/../policies" && pwd)"
 
-# Default to TEST_DB_URL if no DATABASE_URL provided
-DB_URL="${DATABASE_URL:-${TEST_DB_URL}}"
+# Use DATABASE_URL (canonical environment variable)
+DB_URL="${DATABASE_URL}"
 
 if [ -z "$DB_URL" ]; then
-  echo "❌ Error: DATABASE_URL or TEST_DB_URL must be set"
+  echo "❌ Error: DATABASE_URL must be set"
   echo "Example: DATABASE_URL=postgresql://user:pass@localhost:5432/coppercore_dev"
   exit 1
 fi
