@@ -1,234 +1,465 @@
-# CopperCore ERP — CLAUDE.md (Project Operating Guide)
+# CopperCore ERP — CLAUDE.md (AI Development Guide)
 
-> **Purpose (3–5 lines)**  
-CopperCore is a factory-scoped ERP for wires/cables/conductors with strict factory RLS, PU-level traceability, DN→GRN logistics, Pakistan fiscal controls, and a clean separation of logistics vs pricing.  
-**PRD-v1.5.md is the single source of truth.** This guide tells Claude Code Max how to work in this repo: guardrails, autonomy vs approval, workflows, references to agent roles, prompt library, and CI/PR gates.  
-Default to **least privilege**, **plan → code → test** loops, and **reviewed PRs**. Never bypass approvals for destructive actions.
-
----
-
-## 0) Ground Rules (Read Me First)
-
-- **Authority order:** (1) `docs/PRD/PRD_v1.5.md` (supreme), (2) this `CLAUDE.md`, (3) repo docs/ADRs, (4) code comments.  
-- **CRITICAL — Agent usage is mandatory:** Use the agent configs in **`/agents/`** for *all* work. Pick the correct role, respect its guardrails and MCP scopes. Never work outside an agent context.  
-- **Safety:** Do **not** use `--dangerously-skip-permissions`. Always request permission for file writes, shell commands, or MCP tools.  
-- **Separation of concerns:** Do **not** alter **pricing**, **numbering/series**, **RLS/policies**, **audit/backdating**, or **QC override semantics** without explicit approval (see §2.2 and §7).  
-- **Factories & RLS:** All work must enforce **factory scoping** via Postgres RLS; CEO/Director are global exceptions per PRD.  
-- **Context hygiene:** Prefer reading targeted files or the prompt library index instead of pasting large blobs into chat.
-
-### Terminal & Output Discipline (fix UI flicker)
-- Use **Filesystem/GitHub MCP** for edits and reviews; use **Bash** only for short, non-interactive commands.  
-- Any command that would print >200 lines **must** stream to a log and show only a short tail:
-  - Write to `docs/logs/terminal/<timestamp>.log`, then print the first ~200 lines with a link.  
-- Disable pagers/colors in Bash:  
-  `CI=1 GIT_PAGER=cat PAGER=cat GH_PAGER=cat FORCE_COLOR=0 <command>`  
-- For diffs: show `git diff --stat` / `--name-status`; save full patches to `docs/logs/patches/<timestamp>.patch`.  
-- Never run watchers/servers inside Claude’s Bash; output the command for me to run locally and then read/summary the produced log file.
-
-### 🔴 CRITICAL: Session Memory & Checklist Management (MANDATORY)
-
-**At session start (always):**
-1. Load the appropriate **agent** (from `/agents/`) for the task.
-2. Read `docs/logs/SESSION_MEMORY.md` (recent work).
-3. Read `docs/logs/SESSION_CHECKLIST.md` (current tasks).
-
-**Before ending every response (mandatory):**
-1. **Visual verification (Puppeteer MCP):** If UI changed, capture at least one screenshot per state (idle/focus/error). If it deviates from the plan or acceptance criteria, iterate and fix first. Attach file paths/links.  
-2. **Tests now, not later (TestSprite MCP):** Generate/update tests for each change and run them. Return a short pass/fail summary with artifact links. Keep the suite green (unit/integration/RLS/E2E as applicable).
-
-**After every response (mandatory):**
-1. Update **SESSION_CHECKLIST.md** (status, owner, PR links; add new tasks discovered).  
-2. Update **SESSION_MEMORY.md** (what changed this session, next steps).  
-3. Append a one-liner to `docs/logs/AGENT_EVENT_LOG.md` and a detailed entry in the relevant `docs/logs/agents/*.log.md`.
-
-**Auto-summarization rule (to prevent context bloat):**
-- If `SESSION_MEMORY.md` > **200 lines**, summarize older sessions into brief bullets and keep only the latest session in detail.  
-- If `SESSION_CHECKLIST.md` > **200 lines**, archive completed items to a summary section and keep only active items in the main list.
+> **Purpose:**  
+> CopperCore is a factory-scoped ERP for wires/cables/conductors with strict factory RLS, PU-level traceability, DN→GRN logistics, and Pakistan fiscal controls.  
+> **PRD-v1.5.md is the single source of truth.** This guide defines how Claude Code works in this repo using mandatory agent roles, approval gates, and test-driven development.
 
 ---
 
-## 1) Agent Roles & Guardrails (Overview)
+## 🚨 CRITICAL: Mandatory Agent Usage
 
-For the **complete agent/sub-agent plan** — role scopes, allowed MCP tools, explicit prohibitions, and review/commit gates — **see**:  
-👉 **[`/AGENT.md`](./AGENT.md)** (index)  
-👉 **[`/CLAUDE/agents/`](./CLAUDE/agents/)** (actual agent configurations - **MUST BE USED**)
+**ALL development MUST use the Task tool with these agents:**
+- `planning-coordinator` — **START HERE** - Creates actionable plans and coordinates multi-agent workflows
+- `architect-erp` — Database schemas, migrations, RLS policies, security reviews
+- `backend-developer` — API endpoints, business logic, service layers
+- `frontend-developer` — React components, UI state, realtime subscriptions
+- `qa-test-engineer` — Test creation, execution, and validation
+- `devops-engineer` — CI/CD, deployments, infrastructure
+- `docs-pm` — Documentation, ADRs, release notes, PRD alignment
+- `code-linter` — Code quality, formatting, type checking
 
-> **CRITICAL:** Agent configurations in `/CLAUDE/agents/` are **MANDATORY** for all development tasks.  
-> - Roles: Architect, Backend, Frontend, QA, DevOps, Docs/PM.  
-> - Each agent in `/CLAUDE/agents/` contains system prompts, guardrails, and MCP permissions.
-> - **Prod DB is read-only** for all agents.  
-> - Any expansion of MCP permissions requires an ADR + approval.
-> - **NEVER proceed with development without loading the appropriate agent context first.**
-
----
-
-## 2) Autonomy vs Approval
-
-### 2.1 Autonomous (no human approval)
-- Inside a **feature PR only**: lint/type fixes, refactors that don’t touch schema/numbering/pricing, test generation & red-green loops, Playwright specs, UI component scaffolds, docs edits.  
-- Dev/preview DB writes to validate logic/tests.  
-- Non-persisting Puppeteer/Magic tasks; vendor-doc web search.
-
-### 2.2 **Human approval required**
-- **Schema & migrations**, **RLS/policies**, **numbering/series**, **pricing areas**, **audit/backdating logic**, **QC override semantics**, **Supabase Storage policies**, **MCP scope expansions**, **deployments**, **secrets/config**.  
-- Any change that weakens **factory scoping** or the tamper-evident **audit chain**.  
-- Pakistan **regulatory controls** (Sec. 22/23) changes.  
-> Use “Requires Approval” label and pair with an ADR (see §3.2).
+**Workflow:** Start with `planning-coordinator` to create a plan → Execute with specialized agents → Test with `qa-test-engineer`
 
 ---
 
-## 3) Day-to-Day Workflows
+## 🚫 NO MOCK DATABASES POLICY
 
-### 3.1 Anchor to PRD-v1.5.md
-1) Open `docs/PRD/PRD-v1.5.md`.  
-2) Extract relevant sections (e.g., §5.3 WO, §5.7 GRN, §3.7 Realtime).  
-3) List these constraints in the PR description before coding.
+**CRITICAL: CopperCore uses REAL databases only. NO mock databases, in-memory databases, or simulated data stores are allowed.**
 
-### 3.2 Propose an ADR
-- Create `docs/adr/NNNN-title.md`: **Context → Decision → Consequences → Alternatives → PRD refs**.  
-- Tag the PR **`ADR`** and **`Requires Approval`** if it touches gated areas (schema/RLS/numbering/pricing/audit/QC overrides).
+- **ALL development** must use real Supabase database connections
+- **Required environment variables**: `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY`
+- **NO USE_MOCK_DB flags** or mock database fallbacks
+- **Testing** should use preview databases or test schemas, never mocks
+- **Development** must connect to actual database instances
 
-### 3.3 Open a PR (solo-dev, two Macs)
-- Branch: `feat/<scope>-<summary>` or `fix/<scope>-<summary>`.  
-- PR body: **Problem → Plan → Diffs → Tests → Risk & Rollback → PRD refs**.  
-- Run locally before review: **lint → typecheck → unit → integration (DB+RLS) → e2e (Playwright)**.
-
-### 3.4 Requesting secrets / env config
-- Add a placeholder to `.env.example`; open PR explaining usage/scope.  
-- A human adds real values to **GitHub Actions Secrets** / envs (never commit secrets).  
-- Document **least privilege** in `SECURITY.md`.
-
-### 3.5 Test commands (baseline; adjust after scaffold)
-- Web: `pnpm -w install && pnpm -w lint && pnpm -w typecheck && pnpm -w test`  
-- E2E: `pnpm -w e2e` (Playwright)  
-- API: `pnpm -w test:api` or `pytest` (if Django)  
-- DB/RLS integration: `pnpm -w test:db` (ephemeral migrations; reset)  
-> Attach failing outputs in PRs. QA may generate missing specs via TestSprite; app code fixes still go through PR.
+Mock databases create inconsistencies, hide RLS issues, and don't reflect real-world performance. All agents must ensure real database integration.
 
 ---
 
-## 4) Prompt Library (References, not inline)
+## 1. MCP Services Integration
 
-To keep this file lean, **all task playbooks / copy-paste prompts** live under `/docs/prompts/`.  
-Open the relevant file and execute in **plan mode**; **do not commit** until approvals are met.
+### 🚀 CRITICAL: MCP Services Must Be Used
 
-- **RLS policy for `factory_id` tables** → `docs/prompts/rls_policy.md`  
-- **Playwright: GRN discrepancy (short receipt)** → `docs/prompts/playwright_grn_discrepancy.md`  
-- **Optimistic locking (409) migration + tests** → `docs/prompts/optimistic_locking.md`  
-- **Tamper-evident audit chain (hash-linked)** → `docs/prompts/audit_chain.md`  
-- **Realtime cache invalidation (TanStack + Supabase)** → `docs/prompts/realtime_cache_invalidation.md`  
-- **TestSprite: acceptance suite seed (PRD §12)** → `docs/prompts/testsprite_acceptance_seed.md`  
-- Index: `docs/prompts/README.md`
+**ALL development MUST leverage these MCP services wherever applicable:**
 
-**Usage (Claude):**  
-> “Open `docs/prompts/rls_policy.md`. Execute the plan; show diffs and tests; **do not commit** until I approve.”
+> **📖 Complete Guide:** See [`docs/MCP_SERVICES_GUIDE.md`](docs/MCP_SERVICES_GUIDE.md) for detailed usage instructions, examples, and workflows for all MCP services.
+
+### **Database Operations**
+- **Supabase MCP** (`mcp__supabase__*`) — Direct database queries, schema inspection
+  - Use for: Schema validation, data exploration, query optimization
+  - **MANDATORY** for all database-related tasks before writing manual SQL
+  - Project: `iefgojdnjsmsxrzoykol` (read-only mode)
+
+### **Testing & Quality Assurance**
+- **TestSprite MCP** (`mcp__TestSprite__*`) — Automated test generation and execution
+  - `testsprite_bootstrap_tests` — Initialize testing environment
+  - `testsprite_generate_code_summary` — Analyze codebase structure
+  - `testsprite_generate_standardized_prd` — Create structured PRDs
+  - `testsprite_generate_frontend_test_plan` — Frontend testing strategy
+  - `testsprite_generate_backend_test_plan` — Backend testing strategy
+  - `testsprite_generate_code_and_execute` — Generate and run tests
+  - **MANDATORY** for all new features and bug fixes
+
+### **IDE Integration**
+- **VS Code Diagnostics** (`mcp__ide__getDiagnostics`) — Real-time error detection
+  - Use before every commit to catch TypeScript/ESLint issues
+- **Jupyter Execution** (`mcp__ide__executeCode`) — Python code execution
+  - Use for data analysis, migration scripts, validation logic
+
+### **UI/UX Development**
+- **MagicUI MCP** (`@magicuidesign/mcp`) — UI component assistance
+  - Use for: Component design, styling suggestions, accessibility improvements
+  - **MANDATORY** for all frontend component development
+
+### **Memory & Context Management**
+- **OpenMemory MCP** (`openmemory`) — Project knowledge management
+  - Stores and retrieves project context, decisions, patterns
+  - **MANDATORY** for maintaining consistency across sessions
+
+### **Browser Automation**
+- **Brave Browser Control** (`ant.dir.gh.tariqalagha.brave-browser-control`) — Web scraping, E2E testing assistance
+  - Use for: Competitive analysis, documentation gathering, integration testing
+  - **MANDATORY** for browser-based research and validation tasks
+
+### **File System Operations**
+- **Filesystem MCP** (`ant.dir.ant.anthropic.filesystem`) — Enhanced file operations
+  - Use for: Bulk file operations, pattern matching, directory analysis
+  - **MANDATORY** for complex file system operations beyond basic read/write
+
+### **Context Enhancement**
+- **Context7** (`context7`) — Advanced context management
+  - Use for: Cross-file analysis, dependency tracking, code relationship mapping
+  - **MANDATORY** for understanding complex codebases and refactoring tasks
+
+### MCP Usage Workflow
+
+**Before Every Development Task:**
+1. **Bootstrap TestSprite** for test environment setup
+2. **Query Supabase MCP** for schema understanding
+3. **Use MagicUI MCP** for UI/component planning
+4. **Check VS Code Diagnostics** for current issues
+
+**During Development:**
+1. **Generate tests with TestSprite** before implementation
+2. **Use OpenMemory** to store decisions and patterns
+3. **Leverage Browser Control** for research and validation
+4. **Execute code via Jupyter** for data validation
+
+**Before Committing:**
+1. **Run TestSprite execution** for comprehensive testing
+2. **Check Diagnostics** for any remaining issues
+3. **Update OpenMemory** with completion status
+
+### MCP Integration Rules
+
+✅ **MANDATORY Usage:**
+- TestSprite for all testing workflows
+- Supabase MCP for database operations
+- MagicUI for frontend development
+- VS Code Diagnostics before commits
+- OpenMemory for session continuity
+- Brave Browser Control for research and validation
+- Filesystem MCP for complex file operations
+- Context7 for codebase analysis and refactoring
+
+⚠️ **When MCP Services Fail:**
+- Document the failure in `docs/logs/mcp-issues/`
+- Fall back to manual methods ONLY after MCP attempt
+- Report issues for future improvement
+
+❌ **Never Skip:**
+- TestSprite test generation for new features
+- Supabase MCP for schema-related queries  
+- MagicUI consultation for UI components
+- Diagnostic checks before code commits
+- Brave Browser Control for research tasks
+- Filesystem MCP for bulk file operations
+- Context7 for codebase understanding
 
 ---
 
-## 5) “Red Lines” (Hard Guardrails)
+## 2. Ground Rules
 
-- **Pricing:** Do not modify price lists, invoice posting logic, tax rates/printing.  
-- **Numbering/Series:** Do not change assignment/format/reset rules.  
-- **RLS/Policies:** Do not weaken/enlarge access without Architect + CEO approval.  
-- **Audit/Backdating:** Do not alter append-only audit chain or backdating gates.  
-- **QC Overrides:** Do not change HOLD/FAIL override rules; CEO/Director override must be audited.  
-- **Factory Scoping:** No cross-factory visibility except global roles.  
-- **Secrets:** Never commit secrets or silently expand MCP scopes.  
-- **Prod:** No write access for agents; prod DB is **read-only**.
+### Authority Hierarchy
+1. **PRD-v1.5.md** — Supreme authority for all requirements
+2. **CLAUDE.md** — This operational guide
+3. **ADRs** — Architecture decisions in `/docs/adr/`
+4. **Code** — Implementation details and comments
 
----
+### Core Principles
+- **Factory Scoping:** All data access respects factory boundaries via RLS
+- **Least Privilege:** Minimal permissions for all operations
+- **Test-First:** Write tests before implementation
+- **Approval Gates:** Schema/RLS/pricing changes require human approval
+- **No Secrets:** Never commit credentials or API keys
 
-## 6) MCP Tools — Overview & Expectations
-
-> Detailed, per-role permissions are defined in **[`/AGENT.md`](./AGENT.md)**. Configure actual servers via `~/.claude/mcp_servers.json` or the Claude Desktop UI.
-
-- `github` — PRs/reviews/issues; repo-scoped only.  
-- `filesystem` — **repo root only** (no `$HOME` or system paths).  
-- `postgres` (Supabase) — **dev RW**, **staging RW via CI**, **prod RO** (migrations behind approvals).  
-- `web-search` — vendor docs/standards preferred.  
-- `testsprite` — test plan/gen/run; patch suggestions via PR.  
-- `magic-ui` — dev-only component scaffolds; must pass lint/type/storybook.  
-- `puppeteer` — headless checks (PDF/labels/UI); ephemeral browser profile.
+### Terminal Discipline
+- Commands producing >200 lines: save to `docs/logs/terminal/<timestamp>.log`
+- Use flags: `CI=1 GIT_PAGER=cat FORCE_COLOR=0`
+- Never run watchers in Claude's terminal
+- Show `git diff --stat` summaries, save patches to `docs/logs/patches/`
 
 ---
 
-## 7) CI / PR Gates (must be green)
+## 2. Session Management
 
-- Lint + typecheck, unit, integration (**DB + RLS**), Playwright E2E.  
-- If a PR touches `/infra/migrations`, `/infra/policies`, `/apps/api/db`, `/apps/web/src/security`, `/packages/shared/security*`:  
-  - **Architect review + CEO/Director approval** required.  
-  - **Staging migration dry-run** + **PITR checkpoint** must be noted in PR.  
-- Upload artifacts: test reports, coverage, Playwright traces, DB diff summary.
+### Start of Session
+1. Read `docs/logs/SESSION_MEMORY.md` for context
+2. Read `docs/logs/SESSION_CHECKLIST.md` for tasks
+3. Launch appropriate agent with Task tool
+
+### During Work
+1. Update task status in checklist (Todo → In Progress → Done)
+2. Run tests after each change
+3. Capture screenshots for UI changes (if applicable)
+
+### End of Response
+1. Update `SESSION_MEMORY.md` with accomplishments
+2. Update `SESSION_CHECKLIST.md` with task status
+3. Log to `docs/logs/AGENT_EVENT_LOG.md`
+
+### Auto-Summarization
+- Summarize `SESSION_MEMORY.md` if >200 lines
+- Archive completed tasks if `SESSION_CHECKLIST.md` >200 lines
 
 ---
 
-## 8) If PRD vs Best-Practice Conflict
+## 3. Autonomy vs Approval
 
-- **Default to PRD-v1.5.md.**  
-- If a safety/compliance conflict is detected (e.g., request to bypass RLS), **stop**, open an ADR with a compliant alternative, and mark **`Requires Approval`**.
+### ✅ Autonomous (No Approval Needed)
+- Bug fixes that don't alter schema/RLS
+- Test creation and execution
+- Documentation updates
+- UI component creation (following patterns)
+- Linting and formatting
+- Dev/preview database operations
+
+### 🛑 Requires Approval
+- **Database:** Schema changes, migrations, RLS policies
+- **Security:** Authentication, authorization, audit trails
+- **Business Logic:** Pricing, numbering series, QC overrides
+- **Infrastructure:** Deployments, secrets, production access
+- **Compliance:** Pakistan fiscal controls (Sec. 22/23)
+
+**Process:** Create ADR → Tag `Requires Approval` → Wait for human review
 
 ---
 
-## 9) Quick Start Checklist (for Claude on any task)
+## 4. Development Workflow
 
-1) **Plan** (no writes): read PRD sections + code; outline steps; list files to touch.  
-2) **Show diffs** as patches; add/modify tests first (where feasible).  
-3) **Request commit**; run tests; iterate fix → retest.  
-4) **Open PR** with risks, rollback, and PRD references.  
-5) Await required **human approvals** before merging or deploying.
+### Step 1: Plan
+1. Read relevant PRD sections
+2. Identify affected components
+3. List required changes
+4. Create checklist items
 
-## 10) MANDATORY Agent Usage Workflow
+### Step 2: Implement
+1. Launch appropriate agent via Task tool
+2. Write tests first (TDD)
+3. Implement feature
+4. Run tests locally
 
-**CRITICAL: This workflow is NOT optional. Failure to use agents is a violation of project standards.**
+### Step 3: Validate
+```bash
+# Standard test suite
+pnpm -w lint
+pnpm -w typecheck
+pnpm -w test
+pnpm -w e2e
 
-### Agent Selection & Loading Process:
-1. **ALWAYS START** by identifying the task type (frontend, backend, architecture, QA, etc.)
-2. **LOAD THE AGENT** from `/CLAUDE/agents/<role>.md` matching your task
-3. **ADOPT THE SYSTEM PROMPT** from that agent configuration
-4. **FOLLOW THE GUARDRAILS** specified in the agent file
-5. **RESPECT MCP PERMISSIONS** defined for that agent
+# Database tests
+pnpm -w test:db
+```
 
-### Why Agents Were Created:
-- **Separation of Concerns:** Each agent has specific permissions and cannot exceed their scope
-- **Security:** Prevents accidental modifications to critical areas (pricing, RLS, audit)
-- **Quality:** Each agent has specialized knowledge for their domain
-- **Compliance:** Ensures PRD requirements are met through role-specific constraints
+### Step 4: Review
+1. Create PR with clear description
+2. Reference PRD sections
+3. Include test results
+4. Document rollback plan
 
-### Common Mistake to Avoid:
-**NEVER** work directly without an agent context. The `/CLAUDE/agents/` directory exists specifically to be used, not ignored. These are not optional guidelines—they are mandatory operating procedures.
+---
 
-## 11) Agent Event Logs (memory hygiene)
+## 5. Red Lines (Never Cross)
 
-Claude: **After EVERY prompt response**, you MUST:
-1. **Update SESSION_CHECKLIST.md** - Mark completed tasks, add new ones
-2. **Update SESSION_MEMORY.md** - Add what was accomplished this response
-3. At **session end**, also update:
-   - `/docs/logs/AGENT_EVENT_LOG.md` (index)
-   - `/docs/logs/agents/<role>.log.md` (your role-specific log)
+| Area | Restriction |
+|------|------------|
+| **Pricing** | No modifications to price lists or invoice logic |
+| **Numbering** | No changes to series assignment or formats |
+| **RLS** | No weakening of factory boundaries |
+| **Audit** | No alterations to append-only audit chains |
+| **QC** | No bypassing of quality control gates |
+| **Secrets** | Never commit credentials or keys |
+| **Production** | Read-only access for all agents |
 
-**Entry template:** use `/docs/logs/TEMPLATE_EVENT_ENTRY.md`. Keep 10–15 lines max; link the PR/commit and the playbooks used.
+---
 
-## 12) Session Checklist / Task Board
+## 6. Agent-Specific Guidelines
 
-Single source of progress truth: `/docs/logs/SESSION_CHECKLIST.md`.
+### planning-coordinator
+- **Primary Role:** Creates actionable development plans
+- Analyzes PRD requirements and project state
+- Breaks down features into agent-specific tasks
+- Coordinates multi-agent workflows
+- Produces prioritized task lists
 
-Claude: at session start, **read** it; at session end, **update**:
-- Move items across **Todo → In Progress → Done/Blocked**.
-- For each "Done", link the PR and the log entry ID.
-- If you start new work, create a checklist item first.
+### architect-erp
+- Designs schemas with factory scoping
+- Creates RLS policies and migrations
+- Reviews security architecture
+- Requires approval for all changes
 
-## 13) PRD Location
+### backend-developer
+- Implements API endpoints and services
+- Handles business logic (non-pricing)
+- Manages realtime events
+- Enforces optimistic locking
 
-The current Product Requirements Document is here: `docs/PRD/PRD-v1.5.md`.  
-Treat this file as the **single source of truth** for domain rules, workflows, roles, Pakistan regulatory controls, Supabase platform choices, realtime/cache policy, RLS, and acceptance tests.
+### frontend-developer
+- Builds React components with TypeScript
+- Implements realtime subscriptions
+- Manages UI state and caching
+- Handles scanner integrations
 
-## 14) Code Modularity & Size Limits
+### qa-test-engineer
+- Creates comprehensive test suites
+- Validates RLS boundaries
+- Runs E2E Playwright tests
+- Ensures PRD compliance
 
-**Goal:** keep files small and maintainable.
+### devops-engineer
+- Manages CI/CD pipelines
+- Handles deployments and rollbacks
+- Configures infrastructure
+- Manages secrets securely
 
-- **Hard caps:** max **500 lines per file**, max **80 lines per function**, cyclomatic **complexity ≤ 12**.
-- **Split rule:** if a file risks exceeding caps, **split** before continuing. Use feature folders and barrel exports.
-- **Structure (frontend):** `src/features/<area>/{components/, hooks/, api.ts, types.ts, validators.ts, routes.tsx}`.
-- **Structure (backend):** `src/modules/<entity>/{routes.ts, service.ts, repo.ts, schema.ts, types.ts}`.
-- **Migrations:** one logical change per file (prefer multiple small migrations over one huge file).
-- **Agents:** never introduce files >500 lines without an ADR **and** “Requires Approval”. Propose a split plan instead.
+### docs-pm
+- Maintains PRD alignment
+- Creates ADRs for decisions
+- Writes release notes
+- Updates documentation
+
+### code-linter
+- Runs ESLint and Prettier
+- Fixes type errors
+- Improves code quality
+- Creates small cleanup PRs
+
+---
+
+## 7. Project Structure
+
+### Frontend
+```
+apps/web/src/features/<area>/
+  ├── components/     # React components
+  ├── hooks/         # Custom hooks
+  ├── api.ts         # API calls
+  ├── types.ts       # TypeScript types
+  └── validators.ts  # Zod schemas
+```
+
+### Backend
+```
+apps/api/src/modules/<entity>/
+  ├── routes.ts      # API endpoints
+  ├── service.ts     # Business logic
+  ├── repo.ts        # Database queries
+  ├── schema.ts      # Validation
+  └── types.ts       # Type definitions
+```
+
+### Shared
+```
+packages/shared/src/
+  ├── types/         # Shared types
+  ├── errors/        # Error definitions
+  ├── realtime/      # Realtime helpers
+  └── utils/         # Common utilities
+```
+
+---
+
+## 8. Testing Strategy
+
+### Test Types
+1. **Unit Tests** — Individual functions/components
+2. **Integration Tests** — API endpoints with database
+3. **RLS Tests** — Factory boundary validation
+4. **E2E Tests** — Full user workflows (Playwright)
+
+### Coverage Requirements
+- Minimum 80% for new code
+- 100% for critical paths (auth, payments, audit)
+- All PRD acceptance criteria must have tests
+
+---
+
+## 9. CI/CD Pipeline
+
+### PR Checks (Must Pass)
+- [ ] Lint (ESLint)
+- [ ] Type check (TypeScript)
+- [ ] Unit tests
+- [ ] Integration tests
+- [ ] RLS boundary tests
+- [ ] E2E tests (Playwright)
+
+### Protected Paths
+Changes to these paths require architect-erp + approval:
+- `/infra/migrations/`
+- `/infra/policies/`
+- `/apps/api/src/db/`
+- `/packages/shared/src/security/`
+
+---
+
+## 10. Quick Reference
+
+### Common Commands
+```bash
+# Development
+pnpm dev              # Start dev servers
+pnpm -w build        # Build all packages
+
+# Testing
+pnpm -w test         # Run all tests
+pnpm -w test:db      # Database tests
+pnpm -w e2e          # Playwright tests
+
+# Code Quality
+pnpm -w lint         # ESLint
+pnpm -w typecheck    # TypeScript
+pnpm -w lint:fix     # Auto-fix issues
+```
+
+### File Size Limits
+- **Max file size:** 500 lines
+- **Max function:** 80 lines
+- **Cyclomatic complexity:** ≤12
+- **Migration:** One logical change per file
+
+### Prompt Library
+Key prompts in `/docs/prompts/`:
+- `rls_policy.md` — Factory RLS implementation
+- `optimistic_locking.md` — Version control patterns
+- `audit_chain.md` — Tamper-evident logging
+- `realtime_cache_invalidation.md` — Cache management
+- `testsprite_acceptance_seed.md` — Test generation
+
+---
+
+## 11. PRD Compliance
+
+**Always reference PRD sections in:**
+- PR descriptions
+- ADR documents
+- Test scenarios
+- Code comments for complex logic
+
+**Key PRD Sections:**
+- §3.6 — Factory scoping & RLS
+- §5.3-5.10 — Core workflows
+- §8 — Pakistan compliance
+- §12 — Acceptance tests
+
+---
+
+## 12. Emergency Procedures
+
+### Production Issue
+1. **DO NOT** attempt direct fixes
+2. Create incident report in `/docs/incidents/`
+3. Use devops-engineer agent for rollback
+4. Follow up with root cause analysis
+
+### Failed Deployment
+1. Use devops-engineer to check logs
+2. Rollback if necessary
+3. Fix in dev environment first
+4. Re-deploy only after full test suite passes
+
+---
+
+## Remember
+
+✅ **Always use agents via Task tool**  
+✅ **MANDATORY: Use MCP services for all applicable tasks**  
+✅ **TestSprite for all testing workflows**  
+✅ **Supabase MCP for database operations**  
+✅ **MagicUI MCP for frontend development**  
+✅ **VS Code Diagnostics before commits**  
+✅ **OpenMemory for session continuity**  
+✅ **Brave Browser Control for research/validation**  
+✅ **Filesystem MCP for complex file operations**  
+✅ **Context7 for codebase analysis**  
+✅ **Test before committing**  
+✅ **Reference PRD sections**  
+✅ **Update session logs**  
+✅ **Request approval for schema/RLS/pricing**  
+
+❌ **Never commit secrets**  
+❌ **Never bypass RLS**  
+❌ **Never modify pricing logic**  
+❌ **Never skip tests**  
+❌ **Never work without an agent context**  
+❌ **Never skip MCP service usage when applicable**

@@ -175,9 +175,12 @@ export function transformSupabasePayload(
   supabasePayload: SupabaseRealtimePayload,
   factoryId: string
 ): RealtimePayload {
+  // Ensure we always provide a string id for type compatibility
+  const id = (supabasePayload.record?.id ?? supabasePayload.old_record?.id) as string
+  
   return {
     type: supabasePayload.table,
-    id: supabasePayload.record?.id || supabasePayload.old_record?.id,
+    id,
     factoryId: factoryId,
     action: supabasePayload.eventType,
     changedKeys: supabasePayload.record ? Object.keys(supabasePayload.record) : undefined,

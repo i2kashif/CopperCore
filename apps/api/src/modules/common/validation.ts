@@ -73,6 +73,23 @@ export const updateUserFactoryAssignmentSchema = z.object({
   version: z.number().int().positive()
 })
 
+// DEPRECATED: Legacy Product Family validation schemas (use module-specific schemas instead)
+export const createProductFamilySchemaLegacy = z.object({
+  factory_id: uuidSchema,
+  name: z.string().min(1).max(200),
+  code: z.string().regex(/^[A-Z0-9_-]{2,20}$/, 'Code must be 2-20 characters, uppercase letters, numbers, underscore, hyphen'),
+  description: z.string().max(500).optional(),
+  specifications: z.record(z.unknown()).default({}), // DEPRECATED: Use attributes instead
+  sku_naming_rule: z.string().max(100).optional(),
+  default_unit: z.string().max(20).optional(),
+  schema_version: z.number().int().min(1).default(1),
+  is_active: z.boolean().default(true)
+})
+
+export const updateProductFamilySchemaLegacy = createProductFamilySchemaLegacy.partial().extend({
+  version: z.number().int().positive()
+})
+
 // Audit event schema
 export const auditEventSchema = z.object({
   entity_type: z.string().min(1).max(100),
@@ -146,7 +163,7 @@ export function createValidationErrorResponse(errors: z.ZodError) {
   return createErrorResponse('VALIDATION_ERROR', 'Validation failed', errors.errors)
 }
 
-export function createSuccessResponse<T>(data: T, meta?: unknown) {
+export function createSuccessResponse<T>(data: T, meta?: any) {
   return {
     success: true,
     data,

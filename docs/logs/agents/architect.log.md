@@ -2,6 +2,30 @@
 
 > Use the template at `../TEMPLATE_EVENT_ENTRY.md`. Keep entries short (≤15 lines) and link PRs/commits.
 
+### 2025-09-07-architect-2
+- **Branch/PR:** ui/auth-polish (modified - requires approval for schema changes)
+- **Scope/files:** Product Families Database Schema - 2 files modified/created
+- **Playbooks used:** rls_policy.md, optimistic_locking.md patterns, factory scoping
+- **Decisions/risks:**
+  - Simplified schema vs enhanced existing migrations for cleaner user requirements
+  - Factory-scoped RLS using proven cc_is_global() helpers vs new patterns
+  - Soft deletes via is_active vs hard deletes for PRD §8 compliance
+- **Outcome:** Complete product_families table with factory RLS, optimistic locking, audit fields
+- **Files:** /infra/migrations/025_product_families.sql, /apps/api/src/types/database.ts (corrected)
+- **Next actions:** REQUIRES APPROVAL (schema/RLS changes), ready for backend API implementation
+
+### 2025-09-07-architect-1
+- **Branch/PR:** ui/auth-polish (modified - requires approval for schema changes)
+- **Scope/files:** Task DB-1: Opening Stock Migration - 3 files modified/created
+- **Playbooks used:** rls_policy.md, optimistic_locking.md, audit_chain.md, ADR template
+- **Decisions/risks:**
+  - Enhanced existing inventory_lots table vs separate opening_stock table for consistency
+  - Immutable inventory_movements audit trail vs JSON log for queryability
+  - Factory-scoped RLS using proven helper patterns vs new approach for reliability
+- **Outcome:** Complete opening stock foundation with audit trail, RLS policies, TypeScript types, ADR-0001
+- **Files:** /infra/migrations/024_opening_stock_enhanced.sql, /apps/api/src/types/database.ts, /docs/adr/0001-opening-stock-migration-design.md
+- **Next actions:** REQUIRES APPROVAL (schema/RLS changes), staging dry-run, Phase 2 backend APIs
+
 ### 2024-09-06-architect-2  
 - **Branch/PR:** feat/supabase-config-pack (pushed, ready for manual PR creation)
 - **Scope/files:** Supabase config pack - 11 files across infra/templates, packages/shared/src, apps/api/middleware 

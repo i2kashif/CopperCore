@@ -46,6 +46,11 @@ export class FactoriesService {
         }
         dbQuery = dbQuery.in('id', userContext.factory_ids)
       }
+
+      // Filter by a specific factory if provided
+      if (validatedQuery.factory_id) {
+        dbQuery = dbQuery.eq('id', validatedQuery.factory_id)
+      }
       
       // Apply filters
       if (validatedQuery.is_active !== undefined) {

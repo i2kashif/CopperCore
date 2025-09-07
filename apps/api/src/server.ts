@@ -7,6 +7,8 @@ import { setupAuthRoutes, startSessionCleanup } from './middleware/auth'
 import { factoriesRoutes } from './modules/factories/routes'
 import { usersRoutes } from './modules/users/routes'
 import { userFactoryAssignmentsRoutes } from './modules/user-factory-assignments/routes'
+import { productFamiliesRoutes } from './modules/product-families/routes'
+import { skuRoutes } from './modules/skus/routes'
 
 const server = Fastify({
   logger: true
@@ -14,12 +16,11 @@ const server = Fastify({
 
 const schema = {
   type: 'object',
-  required: [],  // No required fields - we'll use mock DB if not provided
+  required: ['SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY'],  // Require Supabase configuration
   properties: {
     SUPABASE_URL: { type: 'string' },
     SUPABASE_SERVICE_ROLE_KEY: { type: 'string' },
-    PORT: { type: 'string', default: '3001' },
-    USE_MOCK_DB: { type: 'string', default: 'true' }
+    PORT: { type: 'string', default: '3001' }
   }
 }
 
@@ -72,11 +73,25 @@ server.get('/api/ping', async () => {
   return { message: 'pong', service: 'CopperCore API', version: '1.0.0' }
 })
 
+// Friendly root route to avoid 404s on '/'
+server.get('/', async () => {
+  return {
+    status: 'ok',
+    service: 'CopperCore API',
+    version: '1.0.0',
+    endpoints: ['/health', '/api/ping', '/auth/*', '/api/*']
+  }
+})
+
 // Register route modules
 await setupAuthRoutes(server)
 await factoriesRoutes(server)
 await usersRoutes(server)
 await userFactoryAssignmentsRoutes(server)
+await productFamiliesRoutes(server)
+
+// Register SKUs routes with prefix
+await server.register(skuRoutes, { prefix: '/api/skus' })
 
 // Start session cleanup
 startSessionCleanup()

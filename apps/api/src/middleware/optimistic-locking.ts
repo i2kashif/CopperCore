@@ -86,7 +86,7 @@ export async function updateWorkOrderHandler(
     const updateData = request.body.data
 
     // Call database function with optimistic locking  
-    const result = await (request.server as { supabase: { rpc: (_fn: string, _args: unknown) => Promise<{ data: unknown }> } }).supabase
+    const result = await (request.server as { supabase: { rpc: (_fn: string, _args?: unknown) => Promise<{ data: unknown }> } }).supabase
       .rpc('update_work_order_safe', {
         p_id: id,
         p_expected_version: expectedVersion,

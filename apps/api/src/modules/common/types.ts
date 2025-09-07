@@ -153,12 +153,49 @@ export interface FactoryScopedContext extends UserContext {
 /**
  * Create input type from Zod schema
  */
-export type CreateInput<T> = z.infer<T>
+export type CreateInput<T extends z.ZodType<any, any, any>> = z.infer<T>
 
 /**
  * Update input type from Zod schema  
  */
-export type UpdateInput<T> = z.infer<T>
+export type UpdateInput<T extends z.ZodType<any, any, any>> = z.infer<T>
+
+/**
+ * Product Family attribute definition
+ */
+export interface ProductFamilyAttribute {
+  key: string
+  label: string
+  type: 'number' | 'text' | 'enum'
+  unit?: string
+  level: 'sku' | 'lot' | 'unit'
+  decideWhen: 'wo' | 'production'
+  showIn: Array<'wo' | 'inventory' | 'packing' | 'invoice'>
+  validation?: {
+    min?: number
+    max?: number
+    step?: number
+    enumOptions?: string[]
+  }
+  allowAppendOptions?: boolean
+}
+
+/**
+ * Product Family entity
+ */
+export interface ProductFamily extends BaseEntity {
+  factory_id: string
+  name: string
+  code: string
+  description?: string
+  attributes: ProductFamilyAttribute[]
+  sku_naming_rule?: string
+  default_unit?: string
+  default_routing?: Record<string, unknown>
+  default_packing_rules?: Record<string, unknown>
+  schema_version: number
+  is_active: boolean
+}
 
 /**
  * Common error codes

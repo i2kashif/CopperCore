@@ -208,6 +208,20 @@ export function AuthProvider({ children }: AuthProviderProps) {
         createdAt: new Date().toISOString(),
       }
       
+      // Also establish API session cookie for backend requests
+      try {
+        const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3001'
+        await fetch(`${apiBase}/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ username: usernameOrEmail, password })
+        })
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.warn('API session bootstrap failed (dev mock):', e)
+      }
+
       setTimeout(() => {
         dispatch({ type: 'SET_USER', payload: mockUser })
         dispatch({ type: 'SET_FACTORIES', payload: [mockFactory] })
@@ -228,7 +242,21 @@ export function AuthProvider({ children }: AuthProviderProps) {
         throw error
       }
 
-      // Session handling is done via the auth state change listener
+      // Also establish API session cookie for backend requests
+      try {
+        const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3001'
+        await fetch(`${apiBase}/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ username: usernameOrEmail, password })
+        })
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.warn('API session bootstrap failed:', e)
+      }
+
+      // Session handling is done via the auth state change listener (for Supabase)
     } catch (error: unknown) {
       dispatch({ type: 'SET_LOADING', payload: false })
       throw new AuthenticationError({

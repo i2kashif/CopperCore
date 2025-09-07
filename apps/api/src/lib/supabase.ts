@@ -1,6 +1,5 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '../types/database'
-import { MockDatabase } from './mock-db'
 
 /**
  * Supabase client singleton for database access
@@ -14,20 +13,16 @@ import { MockDatabase } from './mock-db'
  * - Realtime subscriptions for UI updates
  */
 
-let supabaseInstance: SupabaseClient<Database> | MockDatabase | null = null
-let useMockDb = false
+let supabaseInstance: SupabaseClient<Database> | null = null
 
-export function getSupabaseClient(): SupabaseClient<Database> | MockDatabase {
+export function getSupabaseClient(): SupabaseClient<Database> {
   if (!supabaseInstance) {
     const supabaseUrl = process.env.SUPABASE_URL
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
     
-    // Use mock database if Supabase is not configured or explicitly requested
-    if (!supabaseUrl || !supabaseServiceKey || process.env.USE_MOCK_DB === 'true') {
-      console.log('⚠️  Using mock in-memory database (Supabase not configured)')
-      useMockDb = true
-      supabaseInstance = new MockDatabase()
-      return supabaseInstance
+    // Require Supabase configuration - no mock databases allowed
+    if (!supabaseUrl || !supabaseServiceKey) {
+      throw new Error('Supabase configuration required: Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY environment variables')
     }
 
     // Development mode: Handle case where we might be using anon key instead of service role
@@ -75,7 +70,7 @@ export function getFactoryScopedClient(
   
   // Set RLS context variables for factory scoping
   // These will be used by RLS policies to filter data
-  void client.rpc('set_user_context', {
+  void (client as any).rpc('set_user_context', {
     p_user_id: userId,
     p_factory_ids: factoryIds,
     p_is_global: isGlobal
@@ -93,14 +88,6 @@ export async function checkDatabaseHealth(): Promise<{
   error?: string 
 }> {
   try {
-    if (useMockDb) {
-      return { 
-        connected: true, 
-        latency: 1,
-        error: 'Using mock database' 
-      }
-    }
-    
     const start = Date.now()
     const client = getSupabaseClient()
     
@@ -146,7 +133,7 @@ export async function executeRawSQL(
   
   try {
     // Use rpc to execute raw SQL with parameters
-    const { data, error } = await client.rpc('execute_sql', {
+    const { data, error } = await (client as any).rpc('execute_sql', {
       query: sql,
       params: params
     })
@@ -173,18 +160,18 @@ export async function withTransaction<T>(
   
   try {
     // Start transaction
-    await client.rpc('begin_transaction')
+    await (client as any).rpc('begin_transaction')
     
     try {
       const result = await operations(client)
       
       // Commit transaction
-      await client.rpc('commit_transaction')
+      await (client as any).rpc('commit_transaction')
       
       return { data: result, error: null }
     } catch (error) {
       // Rollback on error
-      await client.rpc('rollback_transaction')
+      await (client as any).rpc('rollback_transaction')
       throw error
     }
   } catch (error) {
@@ -207,7 +194,7 @@ export async function getConnectionStats(): Promise<{
   try {
     const client = getSupabaseClient()
     
-    const { data, error } = await client.rpc('get_connection_stats')
+    const { data, error } = await (client as any).rpc('get_connection_stats')
     
     if (error) {
       return { error: error.message }

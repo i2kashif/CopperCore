@@ -65,6 +65,21 @@ export class UsersService {
           .in('user_factory_assignments.factory_id', userContext.factory_ids)
           .eq('user_factory_assignments.is_active', true)
       }
+
+      // If a specific factory filter is requested, enforce inner join and filter
+      if (validatedQuery.factory_id) {
+        dbQuery = this.getSupabase()
+          .from('users')
+          .select(`
+            *,
+            user_factory_assignments!inner (
+              factory_id,
+              is_active
+            )
+          `, { count: 'exact' })
+          .eq('user_factory_assignments.factory_id', validatedQuery.factory_id)
+          .eq('user_factory_assignments.is_active', true)
+      }
       
       // Apply filters
       if (validatedQuery.is_active !== undefined) {
@@ -94,7 +109,7 @@ export class UsersService {
       }
       
       // Transform data to include assigned_factories
-      const transformedUsers = (users || []).map(user => {
+      const transformedUsers = (users as any[] || []).map((user: any) => {
         const assignedFactories = user.user_factory_assignments
           ?.filter((assignment: { is_active: boolean }) => assignment.is_active)
           .map((assignment: { factory_id: string }) => assignment.factory_id) || []

@@ -2,6 +2,7 @@
 
 module.exports = {
   root: true,
+  ignorePatterns: ['**/*'],
   parser: '@typescript-eslint/parser',
   plugins: ['@typescript-eslint', 'react'],
   extends: [

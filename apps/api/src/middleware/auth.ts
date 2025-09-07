@@ -83,9 +83,9 @@ export async function createUserSession(
     }
     
     // Extract factory IDs
-    const factoryIds = user.user_factory_assignments
-      .filter(assignment => assignment.is_active)
-      .map(assignment => assignment.factory_id)
+    const factoryIds = (user as any).user_factory_assignments
+      .filter((assignment: any) => assignment.is_active)
+      .map((assignment: any) => assignment.factory_id)
     
     // Create session
     const sessionId = generateSessionId()

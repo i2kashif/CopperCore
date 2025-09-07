@@ -2,7 +2,9 @@
 
 > One-liners with links to full entries in per-agent logs. Newest first.
 
+- **2025-09-07 • Architect** — Task DB-1 COMPLETE: Opening stock migration with inventory_movements audit trail, factory-scoped RLS, TypeScript types, ADR-0001. Database foundation ready for Phase 2. [Branch: ui/auth-polish] • [Entry](./agents/architect.log.md#2025-09-07-architect-1)
 - **2025-09-07 • Frontend** — Complete backend implementation with mock database: Auth endpoints, detailed error messages, factory/user CRUD. [Branch: ui/auth-polish] • [Entry](./agents/frontend.log.md#2025-09-07-frontend-2)
+- **2025-09-07 • Planning** — Created 5-phase implementation plan for Manage Company module completion: DB migrations, backend APIs, frontend integration, realtime, testing. 23 tasks mapped to agents. [Branch: ui/auth-polish] • [Entry](./agents/planning.log.md#2025-09-07-planning-1)
 - **2025-09-07 • Frontend** — Manage Company module implementation: Factories, Users, Product Families, SKU Catalog tabs complete. [Branch: ui/auth-polish] • [Entry](./agents/frontend.log.md#2025-09-07-frontend-1)
 - **2025-09-06 • Architect** — M1.1 Database Schema Foundation COMPLETE: Factory-scoped RLS, tamper-evident audit chain, configurable product families, WO material tracking. Requires approval (schema/RLS/audit changes). [Branch: feat/m1-1-database-schema-foundation] • [Entry](./agents/architect.log.md#2025-09-06-architect-3)
 - **2025-09-06 • Multi-Role** — Infrastructure foundation COMPLETE: F) CI/CD & Environments, G) Test & QA Blueprint, H) Security & Guardrails. Project ready for CopperCore ERP implementation. [Branch: config/mcp-tools] • [Entry](./agents/devops.log.md#2025-09-06-devops-3)

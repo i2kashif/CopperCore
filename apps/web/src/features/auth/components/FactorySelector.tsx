@@ -151,9 +151,21 @@ export default function FactorySelector() {
   const [isSelecting, setIsSelecting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // Don't show selector if user only has one factory (auto-selected)
-  if (factories.length <= 1) {
-    return null
+  // If exactly one factory, auto-select it to avoid blank states
+  if (!currentFactory && factories.length === 1 && !isSelecting) {
+    setIsSelecting(true)
+    selectFactory(factories[0].id)
+      .catch(err => setError(err instanceof Error ? err.message : 'Failed to select factory'))
+      .finally(() => setIsSelecting(false))
+  }
+
+  // If no factories loaded yet, show a minimal placeholder instead of returning null
+  if (factories.length === 0 && !currentFactory) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center text-gray-500 text-sm">Loading factories…</div>
+      </div>
+    )
   }
 
   const handleFactorySelect = async (factoryId: string) => {
