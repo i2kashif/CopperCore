@@ -61,9 +61,25 @@
 - 🟩 H-2: Manual approval checklist embedded in PR template • **Owner:** Docs/PM • PR: Enhanced .github/pull_request_template.md
 
 ## I) Milestones (90-day)
-- 🟦 I-1: **M1 (Weeks 1–4)** — DB/RLS foundation, WO core, audit chain, realtime wiring, seed data • **Owner:** Architect • PR(s):
-- 🟦 I-2: **M2 (Weeks 5–8)** — PUs/PLs + scanner flows, DN lifecycle, in-transit, GRN discrepancies, label reprint • **Owner:** Backend/Frontend • PR(s):
-- 🟦 I-3: **M3 (Weeks 9–12)** — Pricing/Invoices blocks & cross-refs, QC QCP + cert PDFs, perf passes, docs • **Owner:** Backend/Frontend/QA • PR(s):
+
+### M1: DB/RLS Foundation (Weeks 1–4)
+- 🟦 I-1.1: Database Schema Foundation (factories, users, product families, core entities) • **Owner:** Architect • PR(s):
+- 🟦 I-1.2: RLS Policy Implementation (factory scoping + CEO/Director bypass) • **Owner:** Architect • PR(s):
+- 🟦 I-1.3: Audit Chain & Optimistic Locking (tamper-evident + version fields) • **Owner:** Architect • PR(s):
+- 🟦 I-1.4: WO Core Operations (create/accept/issue/return/production) • **Owner:** Backend • PR(s):
+- 🟦 I-1.5: Realtime Infrastructure (channels + cache invalidation) • **Owner:** Frontend • PR(s):
+
+### M2: Logistics & Scanning (Weeks 5–8)
+- 🟦 I-2.1: Packing Units & Labels (PU creation + barcode + reprint flow) • **Owner:** Backend • PR(s):
+- 🟦 I-2.2: Packing Lists & Scanner Flows (scanner-first + live tally) • **Owner:** Frontend • PR(s):
+- 🟦 I-2.3: Dispatch Note Lifecycle (create/verify/approve + rejection) • **Owner:** Backend • PR(s):
+- 🟦 I-2.4: GRN & Discrepancies (DN-first + discrepancy capture) • **Owner:** Backend • PR(s):
+
+### M3: Business Logic & QC (Weeks 9–12)
+- 🟦 I-3.1: On-the-Fly SKU System (pending SKU + FM Request & Proceed) • **Owner:** Backend • PR(s):
+- 🟦 I-3.2: QC & Testing Framework (QCP + blocking matrix + overrides) • **Owner:** Backend • PR(s):
+- 🟦 I-3.3: Customer & Pricing Foundation (cross-refs + invoice generation) • **Owner:** Backend • PR(s):
+- 🟦 I-3.4: Performance & Documentation (load testing + docs + deployment) • **Owner:** QA/Docs • PR(s):
 
 ---
 

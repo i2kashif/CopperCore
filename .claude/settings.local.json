@@ -9,7 +9,10 @@
       "Bash(git push:*)",
       "Bash(psql:*)",
       "Bash(pnpm -w build)",
-      "Bash(pnpm run:*)"
+      "Bash(pnpm run:*)",
+      "Bash(gh repo view:*)",
+      "Bash(gh auth:*)",
+      "Bash(git checkout:*)"
     ],
     "deny": [],
     "ask": []
