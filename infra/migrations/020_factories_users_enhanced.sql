@@ -72,24 +72,31 @@ $$;
 
 -- Legacy fallback function for existing simple assignments
 CREATE OR REPLACE FUNCTION cc_user_factories() RETURNS UUID[]
-LANGUAGE SQL STABLE AS $$
-  SELECT COALESCE(
-    CASE 
-      WHEN cc_is_global() THEN 
-        ARRAY(SELECT id FROM factories)
-      ELSE 
-        ARRAY(
-          SELECT uf.factory_id 
-          FROM user_factory_assignments uf
-          WHERE uf.user_id = CASE 
-            WHEN EXISTS (SELECT 1 FROM information_schema.schemata WHERE schema_name = 'auth') 
-            THEN auth.uid()
-            ELSE COALESCE(current_setting('app.user_id', true)::UUID, '00000000-0000-0000-0000-000000000000'::UUID)
-          END
-        )
-    END,
-    ARRAY[]::UUID[]
-  )
+LANGUAGE plpgsql STABLE AS $$
+DECLARE
+  user_id UUID;
+BEGIN
+  -- Get current user ID based on environment
+  IF EXISTS (SELECT 1 FROM information_schema.schemata WHERE schema_name = 'auth') THEN
+    user_id := auth.uid();
+  ELSE
+    user_id := COALESCE(current_setting('app.user_id', true)::UUID, '00000000-0000-0000-0000-000000000000'::UUID);
+  END IF;
+  
+  -- Return factories based on user role
+  IF cc_is_global() THEN
+    RETURN ARRAY(SELECT id FROM factories);
+  ELSE
+    RETURN COALESCE(
+      ARRAY(
+        SELECT uf.factory_id 
+        FROM user_factory_assignments uf
+        WHERE uf.user_id = user_id
+      ),
+      ARRAY[]::UUID[]
+    );
+  END IF;
+END;
 $$;
 
 -- Add RLS policies for user_factory_assignments
