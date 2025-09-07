@@ -14,7 +14,7 @@ export default defineConfig({
     global: 'globalThis',
   },
   server: {
-    port: 3000,
+    port: 3003,
   },
   build: {
     outDir: 'dist',

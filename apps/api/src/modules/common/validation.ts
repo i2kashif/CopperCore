@@ -32,14 +32,14 @@ export const createFactorySchema = z.object({
   name: z.string().min(1).max(200),
   address: z.string().min(1).max(500),
   city: z.string().min(1).max(100),
-  state: z.string().min(1).max(100),
-  postal_code: z.string().min(1).max(20),
+  state: z.string().max(100).optional(),  // Made optional
+  postal_code: z.string().max(20).optional(),  // Made optional
   country: z.string().min(1).max(100).default('Pakistan'),
   phone: z.string().max(50).optional(),
   email: emailSchema.optional(),
   contact_person: nameSchema.optional(),
   is_active: z.boolean().default(true),
-  fiscal_year_start: isoDateSchema.optional().default(() => new Date().toISOString())
+  fiscal_year_start: isoDateSchema.optional()  // Made truly optional, no default
 })
 
 export const updateFactorySchema = createFactorySchema.partial().extend({

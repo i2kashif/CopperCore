@@ -157,20 +157,20 @@ export async function factoriesRoutes(fastify: FastifyInstance) {
       schema: {
         body: {
           type: 'object',
-          required: ['code', 'name', 'address', 'city', 'state', 'postal_code'],
+          required: ['code', 'name', 'address', 'city'],  // Only require essential fields
           properties: {
             code: { type: 'string', pattern: '^[A-Z]{3,4}$' },
             name: { type: 'string', minLength: 1, maxLength: 200 },
             address: { type: 'string', minLength: 1, maxLength: 500 },
             city: { type: 'string', minLength: 1, maxLength: 100 },
-            state: { type: 'string', minLength: 1, maxLength: 100 },
-            postal_code: { type: 'string', minLength: 1, maxLength: 20 },
+            state: { type: 'string', maxLength: 100 },  // Optional
+            postal_code: { type: 'string', maxLength: 20 },  // Optional
             country: { type: 'string', minLength: 1, maxLength: 100, default: 'Pakistan' },
             phone: { type: 'string', maxLength: 50 },
             email: { type: 'string', format: 'email' },
             contact_person: { type: 'string', pattern: '^[a-zA-Z\\s-]{1,100}$' },
             is_active: { type: 'boolean', default: true },
-            fiscal_year_start: { type: 'string', format: 'date-time' }
+            fiscal_year_start: { type: 'string', format: 'date-time' }  // Optional
           }
         }
       }
@@ -233,14 +233,14 @@ export async function factoriesRoutes(fastify: FastifyInstance) {
             name: { type: 'string', minLength: 1, maxLength: 200 },
             address: { type: 'string', minLength: 1, maxLength: 500 },
             city: { type: 'string', minLength: 1, maxLength: 100 },
-            state: { type: 'string', minLength: 1, maxLength: 100 },
-            postal_code: { type: 'string', minLength: 1, maxLength: 20 },
+            state: { type: 'string', maxLength: 100 },  // Optional
+            postal_code: { type: 'string', maxLength: 20 },  // Optional
             country: { type: 'string', minLength: 1, maxLength: 100 },
             phone: { type: 'string', maxLength: 50 },
             email: { type: 'string', format: 'email' },
             contact_person: { type: 'string', pattern: '^[a-zA-Z\\s-]{1,100}$' },
             is_active: { type: 'boolean' },
-            fiscal_year_start: { type: 'string', format: 'date-time' }
+            fiscal_year_start: { type: 'string', format: 'date-time' }  // Optional
           }
         }
       }

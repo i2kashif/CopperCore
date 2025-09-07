@@ -17,8 +17,8 @@ function FactoryForm({
     address: initialData?.address || '',
     city: initialData?.city || '',
     country: initialData?.country || 'Pakistan',
-    phone: initialData?.phone || '',
-    email: initialData?.email || '',
+    phone: '',  // Removed phone field
+    email: '',  // Removed email field
     isActive: initialData?.isActive ?? true
   })
 
@@ -96,30 +96,6 @@ function FactoryForm({
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Phone
-          </label>
-          <input
-            type="tel"
-            value={formData.phone}
-            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-copper-500 focus:ring-copper-500 sm:text-sm"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Email
-          </label>
-          <input
-            type="email"
-            value={formData.email}
-            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-copper-500 focus:ring-copper-500 sm:text-sm"
-          />
-        </div>
-      </div>
 
       <div className="flex items-center">
         <input
@@ -243,14 +219,6 @@ export function FactoriesTab() {
                         <p className="mt-1 text-sm text-gray-500">
                           {factory.address}, {factory.city}, {factory.country}
                         </p>
-                        <div className="mt-1 flex items-center text-sm text-gray-500">
-                          {factory.phone && (
-                            <span className="mr-4">📞 {factory.phone}</span>
-                          )}
-                          {factory.email && (
-                            <span>✉️ {factory.email}</span>
-                          )}
-                        </div>
                       </div>
                       <div className="flex items-center space-x-2">
                         <button

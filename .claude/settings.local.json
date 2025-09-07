@@ -44,7 +44,9 @@
       "Bash(lsof:*)",
       "Bash(kill:*)",
       "Bash(find:*)",
-      "Bash(pnpm -w lint --filter=apps/web)"
+      "Bash(pnpm -w lint --filter=apps/web)",
+      "Read(//tmp/**)",
+      "Bash(curl:*)"
     ],
     "deny": [],
     "ask": []

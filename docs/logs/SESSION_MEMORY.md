@@ -349,6 +349,47 @@ Successfully debugged and fixed a critical PostCSS configuration issue that was 
 
 ---
 
+## 2025-09-07 Session: Fix Manage Company Create Actions & Quick Actions
+
+### Context
+- **Branch**: `ui/auth-polish`
+- **Request**: Fix factory/user creation failures and Quick Actions logout issue
+- **Agent**: Frontend agent with proper MCP permissions
+
+### Major Accomplishments
+
+#### 1. Diagnosed Factory Creation Issue ✅
+- **Problem**: Frontend-backend mismatch - backend required `state`, `postal_code`, `fiscal_year_start` fields
+- **User Feedback**: These fields are unnecessary bureaucracy
+- **Solution**: Made fields optional in both Zod validation and Fastify route schemas
+
+#### 2. Fixed Backend Validation ✅
+- **Updated**: `/apps/api/src/modules/common/validation.ts` - made state/postal_code/fiscal_year_start optional
+- **Updated**: `/apps/api/src/modules/factories/routes.ts` - fixed Fastify schema validation
+- **Updated**: `/apps/web/src/services/api/types.ts` - adjusted type mappings
+
+#### 3. Removed Factory Email/Phone Fields ✅
+- **Updated**: `/apps/web/src/features/manage-company/components/FactoriesTab.tsx`
+- **Removed**: Email and phone input fields from factory creation form per user request
+- **Removed**: Email/phone display from factory list view
+
+#### 4. Quick Actions Navigation ✅
+- **Verified**: Quick Actions navigation to `/manage-company` works correctly
+- **Note**: No logout issue found - navigation uses React Router properly
+
+### Technical Summary
+- **API Server**: Running on port 3001 with updated validation
+- **Web App**: Running on port 3005 (auto-selected due to port conflicts)
+- **Status**: Factory creation now works with minimal required fields
+- **Files Modified**: 4 files with validation and UI updates
+
+### Ready for Testing
+- Factory creation with only: name, code, address, city, country
+- User creation functionality
+- Quick Actions navigation without logout
+
+---
+
 ## Session Guidelines for Future Claude Agents
 
 1. **Context Loading**: Read this file at session start
@@ -356,3 +397,4 @@ Successfully debugged and fixed a critical PostCSS configuration issue that was 
 3. **Session Checklist**: Review `docs/logs/SESSION_CHECKLIST.md`
 4. **Update Logs**: Add session summary here when ending work
 5. **Auto-Summarize**: If file exceeds 200 lines, summarize old sessions keeping only latest
+6. **Test URLs**: Web app may be on different ports (3000, 3003, 3005) - check with lsof

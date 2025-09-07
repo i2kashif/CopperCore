@@ -113,14 +113,14 @@ export interface FactoryInput {
   name: string
   address: string
   city: string
-  state: string
-  postal_code: string
+  state?: string  // Made optional
+  postal_code?: string  // Made optional
   country: string
   phone?: string
   email?: string
   contact_person?: string
   is_active: boolean
-  fiscal_year_start: string
+  fiscal_year_start?: string  // Made optional
 }
 
 /**
@@ -241,14 +241,14 @@ export function mapFrontendFactoryToApi(frontendFactory: import('../../features/
     name: frontendFactory.name,
     address: frontendFactory.address,
     city: frontendFactory.city,
-    state: '', // Default empty, could be derived from city
-    postal_code: '', // Default empty, would need to be added to frontend form
+    state: undefined, // Optional - not needed
+    postal_code: undefined, // Optional - not needed
     country: frontendFactory.country,
-    phone: frontendFactory.phone,
-    email: frontendFactory.email,
-    contact_person: undefined, // Not in frontend form yet
+    phone: frontendFactory.phone || undefined,
+    email: frontendFactory.email || undefined,
+    contact_person: undefined, // Optional - not needed
     is_active: frontendFactory.isActive,
-    fiscal_year_start: new Date().toISOString() // Default to current year
+    fiscal_year_start: undefined // Optional - not needed
   }
 }
 
