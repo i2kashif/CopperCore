@@ -25,7 +25,8 @@
       "Bash(env)",
       "mcp__TestSprite__testsprite_bootstrap_tests",
       "mcp__TestSprite__testsprite_generate_code_summary",
-      "Bash(pnpm dev:*)"
+      "Bash(pnpm dev:*)",
+      "Bash(pnpm add:*)"
     ],
     "deny": [],
     "ask": []
