@@ -59,6 +59,65 @@ interface AuthProviderProps {
   children: ReactNode
 }
 
+// Helper function to fetch user profile
+async function fetchUserProfile(userId: string): Promise<{ user: User; factories: Factory[] }> {
+  const { data: userProfile, error: profileError } = await supabase
+    .from('users')
+    .select(`
+      id,
+      email,
+      username,
+      first_name,
+      last_name,
+      role,
+      is_active,
+      created_at,
+      updated_at,
+      last_login_at,
+      created_by,
+      user_factory_assignments!inner(
+        factory_id,
+        factories(
+          id,
+          name,
+          code,
+          location,
+          is_active,
+          created_at
+        )
+      )
+    `)
+    .eq('id', userId)
+    .single()
+
+  if (profileError) {
+    throw profileError
+  }
+
+  const factories = userProfile.user_factory_assignments.map(
+    (assignment: any) => assignment.factories
+  )
+  const assignedFactories = factories.map((f: any) => f.id)
+
+  const user: User = {
+    id: userProfile.id,
+    email: userProfile.email,
+    username: userProfile.username,
+    firstName: userProfile.first_name,
+    lastName: userProfile.last_name,
+    role: userProfile.role,
+    assignedFactories,
+    currentFactoryId: null,
+    isActive: userProfile.is_active,
+    createdAt: userProfile.created_at,
+    updatedAt: userProfile.updated_at,
+    lastLoginAt: userProfile.last_login_at,
+    createdBy: userProfile.created_by,
+  }
+
+  return { user, factories }
+}
+
 export function AuthProvider({ children }: AuthProviderProps) {
   const [state, dispatch] = useReducer(authReducer, initialState)
 
@@ -99,46 +158,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const handleUserSession = async (session: any) => {
     try {
-      // Fetch user profile with factory assignments
-      const { data: userProfile, error: profileError } = await supabase
-        .from('users')
-        .select(`
-          id,
-          email,
-          role,
-          created_at,
-          last_login_at,
-          user_factory_assignments!inner(
-            factory_id,
-            factories(
-              id,
-              name,
-              code,
-              location,
-              is_active,
-              created_at
-            )
-          )
-        `)
-        .eq('id', session.user.id)
-        .single()
-
-      if (profileError) {
-        throw profileError
-      }
-
-      const factories = userProfile.user_factory_assignments.map((assignment: any) => assignment.factories)
-      const assignedFactories = factories.map((f: any) => f.id)
-
-      const user: User = {
-        id: userProfile.id,
-        email: userProfile.email,
-        role: userProfile.role,
-        assignedFactories,
-        currentFactoryId: null, // Will be set by factory selection
-        createdAt: userProfile.created_at,
-        lastLoginAt: userProfile.last_login_at,
-      }
+      const { user, factories } = await fetchUserProfile(session.user.id)
 
       dispatch({ type: 'SET_USER', payload: user })
       dispatch({ type: 'SET_FACTORIES', payload: factories })
@@ -170,7 +190,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       // Session handling is done via the auth state change listener
     } catch (error: any) {
       dispatch({ type: 'SET_LOADING', payload: false })
-      throw new AuthError({
+      throw new AuthenticationError({
         message: error.message || 'Login failed',
         code: error.error_description || 'AUTH_ERROR',
       })
@@ -254,13 +274,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
 }
 
 // Helper class for auth errors
-class AuthError extends Error {
+class AuthenticationError extends Error {
   code?: string
   details?: Record<string, unknown>
 
   constructor(options: { message: string; code?: string; details?: Record<string, unknown> }) {
     super(options.message)
-    this.name = 'AuthError'
+    this.name = 'AuthenticationError'
     this.code = options.code
     this.details = options.details
   }

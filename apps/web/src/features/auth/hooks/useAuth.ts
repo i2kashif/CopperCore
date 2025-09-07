@@ -3,12 +3,12 @@ import { AuthContext } from '../providers/AuthProvider'
 import { AuthState, User, Factory } from '../types/auth'
 
 export interface UseAuthReturn extends AuthState {
-  login: (email: string, password: string) => Promise<void>
+  login: (_email: string, _password: string) => Promise<void>
   logout: () => Promise<void>
-  selectFactory: (factoryId: string) => Promise<void>
+  selectFactory: (_factoryId: string) => Promise<void>
   refreshUser: () => Promise<void>
-  hasPermission: (permission: keyof typeof import('../types/auth').ROLE_PERMISSIONS[keyof typeof import('../types/auth').ROLE_PERMISSIONS]) => boolean
-  canAccessFactory: (factoryId: string) => boolean
+  hasPermission: (_permission: keyof typeof import('../types/auth').ROLE_PERMISSIONS[keyof typeof import('../types/auth').ROLE_PERMISSIONS]) => boolean
+  canAccessFactory: (_factoryId: string) => boolean
   isGlobalUser: () => boolean
 }
 

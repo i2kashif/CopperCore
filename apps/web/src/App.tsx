@@ -1,33 +1,112 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import { AuthProvider, RouteGuard } from './features/auth'
+import { AuthProvider, RouteGuard, useAuth } from './features/auth'
 import Scanner from './components/Scanner'
 import Dashboard from './components/Dashboard'
+
+function AppHeader() {
+  const { user, currentFactory } = useAuth()
+
+  if (!user) return null
+
+  const displayName = user.firstName && user.lastName 
+    ? `${user.firstName} ${user.lastName}`
+    : user.username || user.email.split('@')[0]
+
+  return (
+    <header className="bg-white shadow border-b border-gray-200">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between h-16">
+          <div className="flex items-center space-x-4">
+            <div className="flex-shrink-0 flex items-center">
+              <div className="h-8 w-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                <svg 
+                  className="h-5 w-5 text-white" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    strokeWidth="2" 
+                    d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" 
+                  />
+                </svg>
+              </div>
+              <h1 className="ml-3 text-xl font-bold text-gray-900">
+                CopperCore ERP
+              </h1>
+            </div>
+            
+            <div className="hidden md:flex items-center space-x-2 text-sm text-gray-600">
+              <div className="h-4 w-px bg-gray-300"></div>
+              <span className="font-medium">{displayName}</span>
+              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                {user.role}
+              </span>
+              {currentFactory && (
+                <>
+                  <span className="text-gray-400">@</span>
+                  <span className="font-mono text-xs bg-gray-100 px-2 py-1 rounded">
+                    {currentFactory.name}
+                  </span>
+                </>
+              )}
+            </div>
+          </div>
+          
+          <div className="flex items-center">
+            <nav className="flex space-x-4">
+              <a
+                href="/"
+                className="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+              >
+                Dashboard
+              </a>
+              <a
+                href="/scanner"
+                className="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+              >
+                Scanner
+              </a>
+            </nav>
+          </div>
+        </div>
+      </div>
+    </header>
+  )
+}
+
+function AppLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <AppHeader />
+      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <div className="px-4 sm:px-0">
+          {children}
+        </div>
+      </main>
+    </div>
+  )
+}
+
+function AppRoutes() {
+  return (
+    <Routes>
+      <Route path="/" element={<Dashboard />} />
+      <Route path="/scanner" element={<Scanner />} />
+    </Routes>
+  )
+}
 
 function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
         <RouteGuard>
-          <div className="min-h-screen bg-gray-50">
-            <header className="bg-white shadow">
-              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex justify-between h-16">
-                  <div className="flex items-center">
-                    <h1 className="text-xl font-semibold text-gray-900">
-                      CopperCore ERP
-                    </h1>
-                  </div>
-                </div>
-              </div>
-            </header>
-            
-            <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-              <Routes>
-                <Route path="/" element={<Dashboard />} />
-                <Route path="/scanner" element={<Scanner />} />
-              </Routes>
-            </main>
-          </div>
+          <AppLayout>
+            <AppRoutes />
+          </AppLayout>
         </RouteGuard>
       </BrowserRouter>
     </AuthProvider>

@@ -1,11 +1,17 @@
 export interface User {
   id: string
   email: string
+  username: string
+  firstName?: string
+  lastName?: string
   role: UserRole
   assignedFactories: string[]
   currentFactoryId: string | null
+  isActive: boolean
   createdAt: string
+  updatedAt: string
   lastLoginAt?: string
+  createdBy?: string
 }
 
 export type UserRole = 'CEO' | 'Director' | 'Factory Manager' | 'Factory Worker' | 'Office'
