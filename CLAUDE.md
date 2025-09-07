@@ -10,6 +10,7 @@ Default to **least privilege**, **plan → code → test** loops, and **reviewed
 ## 0) Ground Rules (Read Me First)
 
 - **Authority order:** (1) PRD-v1.5.md (supreme), (2) this `CLAUDE.md`, (3) repo docs/ADRs, (4) code comments.  
+- **CRITICAL: AGENT USAGE IS MANDATORY** - You MUST use the agent configurations in `/CLAUDE/agents/` for ALL development work. Each agent has specific roles, permissions, and guardrails. **NEVER skip agent setup or work without the appropriate agent context. The agents must be loaded and used for every task.**
 - **Safety:** Do **not** use `--dangerously-skip-permissions`. Always request permission for file writes, shell commands, or MCP tools.  
 - **Separation of concerns:** Do **not** alter **pricing**, **numbering/series**, **RLS/policies**, **audit/backdating**, or **QC override semantics** without explicit approval (see §2.2 and §7).  
 - **Factories & RLS:** All work must enforce **factory scoping** via Postgres RLS; CEO/Director are global exceptions per PRD.  
@@ -21,12 +22,15 @@ Default to **least privilege**, **plan → code → test** loops, and **reviewed
 ## 1) Agent Roles & Guardrails (Overview)
 
 For the **complete agent/sub-agent plan** — role scopes, allowed MCP tools, explicit prohibitions, and review/commit gates — **see**:  
-👉 **[`/AGENT.md`](./AGENT.md)**
+👉 **[`/AGENT.md`](./AGENT.md)** (index)  
+👉 **[`/CLAUDE/agents/`](./CLAUDE/agents/)** (actual agent configurations - **MUST BE USED**)
 
-> TL;DR:  
+> **CRITICAL:** Agent configurations in `/CLAUDE/agents/` are **MANDATORY** for all development tasks.  
 > - Roles: Architect, Backend, Frontend, QA, DevOps, Docs/PM.  
+> - Each agent in `/CLAUDE/agents/` contains system prompts, guardrails, and MCP permissions.
 > - **Prod DB is read-only** for all agents.  
 > - Any expansion of MCP permissions requires an ADR + approval.
+> - **NEVER proceed with development without loading the appropriate agent context first.**
 
 ---
 
@@ -145,7 +149,27 @@ Open the relevant file and execute in **plan mode**; **do not commit** until app
 4) **Open PR** with risks, rollback, and PRD references.  
 5) Await required **human approvals** before merging or deploying.
 
-## 10) Agent Event Logs (memory hygiene)
+## 10) MANDATORY Agent Usage Workflow
+
+**CRITICAL: This workflow is NOT optional. Failure to use agents is a violation of project standards.**
+
+### Agent Selection & Loading Process:
+1. **ALWAYS START** by identifying the task type (frontend, backend, architecture, QA, etc.)
+2. **LOAD THE AGENT** from `/CLAUDE/agents/<role>.md` matching your task
+3. **ADOPT THE SYSTEM PROMPT** from that agent configuration
+4. **FOLLOW THE GUARDRAILS** specified in the agent file
+5. **RESPECT MCP PERMISSIONS** defined for that agent
+
+### Why Agents Were Created:
+- **Separation of Concerns:** Each agent has specific permissions and cannot exceed their scope
+- **Security:** Prevents accidental modifications to critical areas (pricing, RLS, audit)
+- **Quality:** Each agent has specialized knowledge for their domain
+- **Compliance:** Ensures PRD requirements are met through role-specific constraints
+
+### Common Mistake to Avoid:
+**NEVER** work directly without an agent context. The `/CLAUDE/agents/` directory exists specifically to be used, not ignored. These are not optional guidelines—they are mandatory operating procedures.
+
+## 11) Agent Event Logs (memory hygiene)
 
 Claude: at the **end of every session or PR**, append a concise entry to:
 - `/docs/logs/AGENT_EVENT_LOG.md` (index)
@@ -153,21 +177,21 @@ Claude: at the **end of every session or PR**, append a concise entry to:
 
 **Entry template:** use `/docs/logs/TEMPLATE_EVENT_ENTRY.md`. Keep 10–15 lines max; link the PR/commit and the playbooks used.
 
-## 11) Session Checklist / Task Board
+## 12) Session Checklist / Task Board
 
 Single source of progress truth: `/docs/logs/SESSION_CHECKLIST.md`.
 
 Claude: at session start, **read** it; at session end, **update**:
 - Move items across **Todo → In Progress → Done/Blocked**.
-- For each “Done”, link the PR and the log entry ID.
+- For each "Done", link the PR and the log entry ID.
 - If you start new work, create a checklist item first.
 
-## 12) PRD Location
+## 13) PRD Location
 
 The current Product Requirements Document is here: `docs/PRD/PRD-v1.5.md`.  
 Treat this file as the **single source of truth** for domain rules, workflows, roles, Pakistan regulatory controls, Supabase platform choices, realtime/cache policy, RLS, and acceptance tests.
 
-## 13) Code Modularity & Size Limits
+## 14) Code Modularity & Size Limits
 
 **Goal:** keep files small and maintainable.
 

@@ -41,7 +41,31 @@
 ## Todo
 
 ### UI Foundation Phase (Post-Auth)
-- 🟦 UI-4: Product Family Management UI (CEO: create/edit families + attributes configuration) • **Owner:** Frontend+Backend • PRD §5.1, §3.1 • Product setup foundation
+
+#### UI-4: Product Family Management (PRD §5.1, §3.1)
+##### Core Features
+- 🟩 PF-1: Family CRUD Operations (create/edit/delete/enable/disable) • **Owner:** Frontend • **Completed:** 2025-09-07
+- 🟩 PF-2: Attribute Configuration System (add/edit attributes with types, levels, validation) • **Owner:** Frontend • **Completed:** 2025-09-07
+- 🟩 PF-3: SKU Naming Rule Builder (visual builder with preview) • **Owner:** Frontend • **Completed:** 2025-09-07
+- 🟩 PF-4: Validation Rules Engine (min/max, step, enum options) • **Owner:** Frontend • **Completed:** 2025-09-07
+- 🟩 PF-5: Family Templates (Enamel Wire, PVC Cable presets) • **Owner:** Frontend • **Completed:** 2025-09-07
+- 🟩 PF-6: List View with Search/Filter/Sort • **Owner:** Frontend • **Completed:** 2025-09-07
+- 🟩 PF-7: Detail View with Attribute Management • **Owner:** Frontend • **Completed:** 2025-09-07
+- 🟩 PF-8: Default Settings (routing, packing) • **Owner:** Frontend • **Completed:** 2025-09-07
+- 🟦 PF-9: Impact Analysis & Warnings • **Owner:** Frontend
+- 🟩 PF-10: SKU Generation Preview • **Owner:** Frontend • **Completed:** 2025-09-07
+- 🟦 PF-11: Audit & Change Tracking • **Owner:** Frontend
+- 🟦 PF-12: Performance Optimizations (pagination, auto-save) • **Owner:** Frontend
+- 🟩 PF-13: Access Control (CEO/Director only) • **Owner:** Frontend • **Completed:** 2025-09-07
+
+##### Nice-to-Have Enhancements
+- 🟦 PF-E1: Attribute Dependency Graph Visualization • **Owner:** Frontend
+- 🟦 PF-E2: Family Relationship Diagram • **Owner:** Frontend
+- 🟦 PF-E3: Usage Analytics Dashboard • **Owner:** Frontend
+- 🟦 PF-E4: AI-Suggested Attributes • **Owner:** Frontend
+- 🟦 PF-E5: Smart Naming Rule Suggestions • **Owner:** Frontend
+- 🟦 PF-E6: Duplicate Family Detection • **Owner:** Frontend
+
 - 🟦 UI-5: SKU Catalog Management (CEO/Director: bulk generation, family-based SKU creation) • **Owner:** Frontend+Backend • PRD §5.2, §3.2 • Inventory foundation
 - 🟦 UI-6: Basic Work Order Creation (Director: create WO with SKU selection + factory assignment) • **Owner:** Frontend+Backend • PRD §5.3 • Operations entry point
 

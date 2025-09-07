@@ -87,10 +87,18 @@ interface QuickActionProps {
   disabled?: boolean
 }
 
-function QuickAction({ title, description, icon, onClick, disabled = false }: QuickActionProps) {
+function QuickAction({ title, description, icon, href, onClick, disabled = false }: QuickActionProps) {
+  const handleClick = () => {
+    if (href && !disabled) {
+      window.location.href = href
+    } else if (onClick) {
+      onClick()
+    }
+  }
+
   return (
     <button
-      onClick={onClick}
+      onClick={handleClick}
       disabled={disabled}
       className="relative group bg-white p-6 rounded-lg border border-gray-200 hover:border-blue-300 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 text-left w-full"
     >
@@ -126,6 +134,8 @@ function QuickAction({ title, description, icon, onClick, disabled = false }: Qu
 }
 
 function QuickActionsGrid() {
+  const { user } = useAuth()
+  
   const actions = [
     {
       title: 'Scanner',
@@ -135,6 +145,7 @@ function QuickActionsGrid() {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h4" />
         </svg>
       ),
+      href: '/scanner',
     },
     {
       title: 'Work Orders',
@@ -184,7 +195,8 @@ function QuickActionsGrid() {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
         </svg>
       ),
-      disabled: true,
+      disabled: user?.role !== 'CEO' && user?.role !== 'Director',
+      href: '/manage-company',
     },
   ]
 
@@ -206,6 +218,7 @@ function QuickActionsGrid() {
               title={action.title}
               description={action.description}
               icon={action.icon}
+              href={action.href}
               disabled={action.disabled}
             />
           ))}

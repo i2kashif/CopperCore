@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { AuthProvider, RouteGuard, useAuth } from './features/auth'
 import Scanner from './components/Scanner'
 import Dashboard from './components/Dashboard'
+import { ManageCompany } from './features/manage-company'
 
 function AppHeader() {
   const { user, currentFactory } = useAuth()
@@ -69,6 +70,14 @@ function AppHeader() {
               >
                 Scanner
               </a>
+              {(user.role === 'CEO' || user.role === 'Director') && (
+                <a
+                  href="/manage-company"
+                  className="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                >
+                  Manage Company
+                </a>
+              )}
             </nav>
           </div>
         </div>
@@ -95,6 +104,7 @@ function AppRoutes() {
     <Routes>
       <Route path="/" element={<Dashboard />} />
       <Route path="/scanner" element={<Scanner />} />
+      <Route path="/manage-company" element={<ManageCompany />} />
     </Routes>
   )
 }
