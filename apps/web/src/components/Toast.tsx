@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+//
 import { useToast, Toast as ToastType } from '../hooks/useToast'
 
 function ToastItem({ toast }: { toast: ToastType }) {

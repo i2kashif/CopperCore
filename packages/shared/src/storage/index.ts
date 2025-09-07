@@ -126,18 +126,20 @@ export class FileValidator {
 
 // Storage service interface (to be implemented with Supabase client)
 export interface StorageService {
-  upload(upload: FileUpload): Promise<{ path: string; url?: string }>
-  download(bucket: StorageBucket, path: string): Promise<Blob>
-  getSignedUrl(bucket: StorageBucket, path: string, expiresIn?: number): Promise<string>
-  delete(bucket: StorageBucket, path: string): Promise<void>
-  list(bucket: StorageBucket, prefix?: string): Promise<FileMetadata[]>
+  upload(_upload: FileUpload): Promise<{ path: string; url?: string }>
+  download(_bucket: StorageBucket, _path: string): Promise<Blob>
+  getSignedUrl(_bucket: StorageBucket, _path: string, _expiresIn?: number): Promise<string>
+  delete(_bucket: StorageBucket, _path: string): Promise<void>
+  list(_bucket: StorageBucket, _prefix?: string): Promise<FileMetadata[]>
 }
 
 // Error classes
 export class StorageError extends Error {
-  constructor(message: string, public readonly code: string) {
+  public readonly code: string
+  constructor(message: string, code: string) {
     super(message)
     this.name = 'StorageError'
+    this.code = code
   }
 }
 

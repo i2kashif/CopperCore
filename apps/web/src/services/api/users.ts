@@ -7,13 +7,11 @@ import { apiClient, ApiError } from './client'
 import type {
   ApiUser,
   ApiUserWithAssignments,
-  UserInput,
   UserStats,
   ApiUserFactoryAssignment,
   UserFactoryAssignmentInput,
   BulkAssignmentInput,
   AssignmentStats,
-  ApiResponse,
   ListQuery
 } from './types'
 import type { User, UserFormData } from '../../features/manage-company/types'
@@ -333,8 +331,6 @@ export class UsersApi {
    */
   async removeUserFromFactory(userId: string, factoryId: string): Promise<void> {
     try {
-      // We need to find the assignment ID first
-      const assignments = await this.getUserFactories(userId)
       // For now, we'll use a delete endpoint that accepts user_id and factory_id
       const response = await apiClient.delete<{ success: boolean }>(
         `${this.assignmentsEndpoint}?user_id=${userId}&factory_id=${factoryId}`

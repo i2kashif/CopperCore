@@ -1,5 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query'
-import { useEffect } from 'react'
+import { useCallback, useEffect } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import { cacheKeys } from '@coppercore/shared/cache/keys'
 
@@ -30,7 +30,12 @@ export function useRealtimeCache(factoryId: string) {
           schema: 'public',
           filter: `factory_id=eq.${factoryId}` 
         }, 
-        (payload: any) => {
+        (payload: {
+          table?: string
+          eventType: 'INSERT' | 'UPDATE' | 'DELETE'
+          new?: { id?: string; version?: number }
+          old?: { id?: string }
+        }) => {
           const realtimePayload: RealtimePayload = {
             type: payload.table || 'unknown',
             id: payload.new?.id || payload.old?.id || '',
@@ -48,9 +53,9 @@ export function useRealtimeCache(factoryId: string) {
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [factoryId, queryClient])
+  }, [factoryId, handleRealtimeUpdate])
 
-  const handleRealtimeUpdate = (payload: RealtimePayload) => {
+  const handleRealtimeUpdate = useCallback((payload: RealtimePayload) => {
     switch (payload.type) {
       case 'work_orders':
         queryClient.invalidateQueries({ 
@@ -82,7 +87,7 @@ export function useRealtimeCache(factoryId: string) {
           queryKey: [payload.type, payload.factoryId] 
         })
     }
-  }
+  }, [queryClient])
 
   return { supabase }
 }

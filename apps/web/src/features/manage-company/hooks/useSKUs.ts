@@ -157,12 +157,32 @@ export function useSKUs() {
 
     // Apply sorting
     filtered.sort((a, b) => {
-      let aVal: any = a[sort.field]
-      let bVal: any = b[sort.field]
+      let aVal: string | number | Date
+      let bVal: string | number | Date
 
-      if (sort.field === 'usageCount') {
-        aVal = a.usageCount || 0
-        bVal = b.usageCount || 0
+      switch (sort.field) {
+        case 'code':
+          aVal = a.code
+          bVal = b.code
+          break
+        case 'name':
+          aVal = a.name
+          bVal = b.name
+          break
+        case 'createdAt':
+          aVal = new Date(a.createdAt)
+          bVal = new Date(b.createdAt)
+          break
+        case 'status':
+          aVal = a.status
+          bVal = b.status
+          break
+        case 'usageCount':
+          aVal = a.usageCount || 0
+          bVal = b.usageCount || 0
+          break
+        default:
+          return 0
       }
 
       if (aVal < bVal) return sort.direction === 'asc' ? -1 : 1
@@ -228,11 +248,11 @@ export function useSKUs() {
       const newSKUs: SKU[] = []
       
       // Generate all combinations
-      const generateCombinations = (arrays: any[][]): any[][] => {
+      const generateCombinations = (arrays: Array<Array<string | number>>): Array<Array<string | number>> => {
         if (arrays.length === 0) return [[]]
         const [first, ...rest] = arrays
         const restCombinations = generateCombinations(rest)
-        const result: any[][] = []
+        const result: Array<Array<string | number>> = []
         for (const value of first) {
           for (const combination of restCombinations) {
             result.push([value, ...combination])
@@ -244,9 +264,9 @@ export function useSKUs() {
       const valueArrays = data.attributeGrids.map(grid => grid.values)
       const combinations = generateCombinations(valueArrays)
 
-      combinations.forEach(combination => {
+      combinations.forEach((combination) => {
         let code = family.skuNamingRule.pattern
-        const attributes: any[] = []
+        const attributes: SKU['attributes'] = []
         
         combination.forEach((value, index) => {
           const grid = data.attributeGrids[index]

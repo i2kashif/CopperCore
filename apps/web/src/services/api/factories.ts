@@ -4,15 +4,7 @@
  */
 
 import { apiClient, ApiError } from './client'
-import type {
-  ApiFactory,
-  FactoryInput,
-  FactoryStats,
-  ApiResponse,
-  ListQuery,
-  mapApiFactoryToFrontend,
-  mapFrontendFactoryToApi
-} from './types'
+import type { ApiFactory, FactoryStats, ListQuery } from './types'
 import type { Factory, FactoryFormData } from '../../features/manage-company/types'
 
 /**

@@ -40,5 +40,5 @@ const Card = forwardRef<HTMLDivElement, CardProps>(
 )
 
 Card.displayName = 'Card'
-
+// eslint-disable-next-line react-refresh/only-export-components
 export { Card, cardVariants }

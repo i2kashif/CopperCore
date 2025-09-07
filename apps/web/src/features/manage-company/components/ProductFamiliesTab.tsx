@@ -4,7 +4,7 @@ import { useProductFamilies } from '../hooks/useProductFamilies'
 import { ProductFamilyList } from './product-families/ProductFamilyList'
 import { ProductFamilyForm } from './product-families/ProductFamilyForm'
 import { ProductFamilyFilters } from './product-families/ProductFamilyFilters'
-import type { ProductFamily, ProductFamilyFilters as FilterType, ProductFamilySort } from '../types/productFamily'
+import type { ProductFamily, ProductFamilyFilters as FilterType, ProductFamilySort, ProductFamilyFormData } from '../types/productFamily'
 
 export function ProductFamiliesTab() {
   const { user } = useAuth()
@@ -65,7 +65,7 @@ export function ProductFamiliesTab() {
     setEditingFamily(null)
   }
 
-  const handleSave = async (data: any) => {
+  const handleSave = async (data: ProductFamilyFormData) => {
     try {
       if (editingFamily) {
         await updateProductFamily(editingFamily.id, data)

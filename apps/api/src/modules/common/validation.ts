@@ -79,8 +79,8 @@ export const auditEventSchema = z.object({
   entity_id: uuidSchema,
   action: z.enum(['CREATE', 'UPDATE', 'DELETE', 'APPROVE', 'REJECT']),
   factory_id: uuidSchema.optional(),
-  before_values: z.record(z.any()).optional(),
-  after_values: z.record(z.any()).optional(),
+  before_values: z.record(z.unknown()).optional(),
+  after_values: z.record(z.unknown()).optional(),
   reason: z.string().max(1000).optional(),
   ip_address: z.string().max(45).optional(),
   user_agent: z.string().max(500).optional()
@@ -131,7 +131,7 @@ export function canOverrideQC(role: UserRole): boolean {
 /**
  * Error response helpers
  */
-export function createErrorResponse(code: string, message: string, details?: any) {
+export function createErrorResponse(code: string, message: string, details?: unknown) {
   return {
     success: false,
     error: {
@@ -146,7 +146,7 @@ export function createValidationErrorResponse(errors: z.ZodError) {
   return createErrorResponse('VALIDATION_ERROR', 'Validation failed', errors.errors)
 }
 
-export function createSuccessResponse<T>(data: T, meta?: any) {
+export function createSuccessResponse<T>(data: T, meta?: unknown) {
   return {
     success: true,
     data,

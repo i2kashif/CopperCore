@@ -5,7 +5,7 @@ export const cacheKeys = {
   workOrders: {
     all: ['work_orders'] as const,
     lists: () => [...cacheKeys.workOrders.all, 'list'] as const,
-    list: (factoryId: string, filters?: Record<string, any>) =>
+    list: (factoryId: string, filters?: Record<string, unknown>) =>
       filters 
         ? [...cacheKeys.workOrders.lists(), factoryId, filters] as const
         : [...cacheKeys.workOrders.lists(), factoryId] as const,
@@ -17,7 +17,7 @@ export const cacheKeys = {
   packingUnits: {
     all: ['packing_units'] as const,
     lists: () => [...cacheKeys.packingUnits.all, 'list'] as const,
-    list: (factoryId: string, filters?: Record<string, any>) =>
+    list: (factoryId: string, filters?: Record<string, unknown>) =>
       filters 
         ? [...cacheKeys.packingUnits.lists(), factoryId, filters] as const
         : [...cacheKeys.packingUnits.lists(), factoryId] as const,
@@ -31,7 +31,7 @@ export const cacheKeys = {
   dispatchNotes: {
     all: ['dispatch_notes'] as const,
     lists: () => [...cacheKeys.dispatchNotes.all, 'list'] as const,
-    list: (factoryId: string, filters?: Record<string, any>) =>
+    list: (factoryId: string, filters?: Record<string, unknown>) =>
       filters 
         ? [...cacheKeys.dispatchNotes.lists(), factoryId, filters] as const
         : [...cacheKeys.dispatchNotes.lists(), factoryId] as const,
@@ -43,7 +43,7 @@ export const cacheKeys = {
   grns: {
     all: ['grns'] as const,
     lists: () => [...cacheKeys.grns.all, 'list'] as const,
-    list: (factoryId: string, filters?: Record<string, any>) =>
+    list: (factoryId: string, filters?: Record<string, unknown>) =>
       filters 
         ? [...cacheKeys.grns.lists(), factoryId, filters] as const
         : [...cacheKeys.grns.lists(), factoryId] as const,
@@ -59,7 +59,7 @@ export const cacheKeys = {
     lots: (factoryId: string) => [...cacheKeys.inventory.all, 'lots', factoryId] as const,
     lot: (lotId: string, factoryId: string) =>
       [...cacheKeys.inventory.all, 'lot', lotId, factoryId] as const,
-    movements: (factoryId: string, filters?: Record<string, any>) =>
+    movements: (factoryId: string, filters?: Record<string, unknown>) =>
       filters 
         ? [...cacheKeys.inventory.all, 'movements', factoryId, filters] as const
         : [...cacheKeys.inventory.all, 'movements', factoryId] as const,
@@ -100,8 +100,8 @@ export const getInvalidationKeys = (
   entityType: string,
   factoryId: string,
   entityId?: string
-): Array<readonly (string | Record<string, any>)[]> => {
-  const keys: Array<readonly (string | Record<string, any>)[]> = []
+): Array<readonly (string | Record<string, unknown>)[]> => {
+  const keys: Array<readonly (string | Record<string, unknown>)[]> = []
 
   switch (entityType) {
     case 'work_order':

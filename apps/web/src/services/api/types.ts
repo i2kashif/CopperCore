@@ -75,13 +75,13 @@ export interface ApiUserFactoryAssignment extends BaseEntity {
 /**
  * API Response wrapper - matches backend
  */
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   success: boolean
   data?: T
   error?: {
     code: string
     message: string
-    details?: any
+    details?: unknown
   }
   meta?: {
     total?: number

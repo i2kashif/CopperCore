@@ -161,8 +161,18 @@ export function shouldInvalidateCache(
 
 // Database trigger payload transformer
 // Transforms Supabase realtime payload to our standard format
+// Minimal type for Supabase realtime payload we consume
+type SupabaseRealtimePayload = {
+  table: string
+  eventType: 'INSERT' | 'UPDATE' | 'DELETE'
+  schema?: string
+  commit_timestamp?: string
+  record?: Record<string, unknown> & { id?: string; version?: number; updated_by?: string }
+  old_record?: Record<string, unknown> & { id?: string }
+}
+
 export function transformSupabasePayload(
-  supabasePayload: any,
+  supabasePayload: SupabaseRealtimePayload,
   factoryId: string
 ): RealtimePayload {
   return {
@@ -183,26 +193,26 @@ export function transformSupabasePayload(
 }
 
 // Extract relevant metadata based on entity type
-function extractMetadata(table: string, record: any): Record<string, any> {
+function extractMetadata(table: string, record: Record<string, unknown> | undefined): Record<string, unknown> {
   if (!record) return {}
   
   switch (table) {
     case 'dispatch_note':
       return {
-        destination_factory_id: record.destination_factory_id,
-        status: record.status,
+        destination_factory_id: (record as { destination_factory_id?: string }).destination_factory_id,
+        status: (record as { status?: string }).status,
       }
     case 'grn':
       return {
-        dispatch_note_id: record.dispatch_note_id,
-        source_factory_id: record.source_factory_id,
-        status: record.status,
+        dispatch_note_id: (record as { dispatch_note_id?: string }).dispatch_note_id,
+        source_factory_id: (record as { source_factory_id?: string }).source_factory_id,
+        status: (record as { status?: string }).status,
       }
     case 'audit_chain':
       return {
-        entity_type: record.entity_type,
-        entity_id: record.entity_id,
-        action: record.action,
+        entity_type: (record as { entity_type?: string }).entity_type,
+        entity_id: (record as { entity_id?: string }).entity_id,
+        action: (record as { action?: string }).action,
       }
     default:
       return {}

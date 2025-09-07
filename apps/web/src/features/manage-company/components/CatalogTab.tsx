@@ -8,7 +8,7 @@ import { BulkGenerationModal } from './BulkGenerationModal'
 import type { SKU } from '../types/sku'
 
 export function CatalogTab() {
-  const { skus, loading, filters, setFilters, sort, setSort, processApproval, toggleSKUStatus } = useSKUs()
+  const { skus, filters, setFilters, sort, setSort, processApproval, toggleSKUStatus } = useSKUs()
   const { productFamilies: families } = useProductFamilies()
   const [showCreateWizard, setShowCreateWizard] = useState(false)
   const [showBulkGeneration, setShowBulkGeneration] = useState(false)
@@ -94,7 +94,7 @@ export function CatalogTab() {
           <select
             className="rounded-md border-gray-300 text-sm"
             value={filters.status || ''}
-            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFilters(prev => ({ ...prev, status: e.target.value as any || undefined }))}
+            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFilters(prev => ({ ...prev, status: (e.target.value as SKU['status']) || undefined }))}
           >
             <option value="">All Status</option>
             <option value="active">Active</option>

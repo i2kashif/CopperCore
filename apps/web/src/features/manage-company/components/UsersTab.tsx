@@ -183,7 +183,7 @@ export function UsersTab() {
     getDisplayFactoryInfo,
     refreshUsers
   } = useUsers()
-  const { factories, loading: factoriesLoading } = useFactories()
+  const { factories } = useFactories()
   const [showForm, setShowForm] = useState(false)
   const [editingUser, setEditingUser] = useState<User | null>(null)
   // BACK-15: Add optimistic update states for better UX

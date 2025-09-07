@@ -112,7 +112,7 @@ export class ApiClient {
   /**
    * GET request
    */
-  async get<T>(endpoint: string, params?: Record<string, any>): Promise<ApiResponse<T>> {
+  async get<T>(endpoint: string, params?: Record<string, string | number | boolean | null | undefined>): Promise<ApiResponse<T>> {
     const url = new URL(endpoint, this.baseURL)
     
     if (params) {
@@ -129,7 +129,7 @@ export class ApiClient {
   /**
    * POST request
    */
-  async post<T>(endpoint: string, body?: any): Promise<ApiResponse<T>> {
+  async post<T>(endpoint: string, body?: unknown): Promise<ApiResponse<T>> {
     return this.request<T>(endpoint, {
       method: 'POST',
       body: body ? JSON.stringify(body) : undefined,
@@ -139,7 +139,7 @@ export class ApiClient {
   /**
    * PUT request
    */
-  async put<T>(endpoint: string, body?: any): Promise<ApiResponse<T>> {
+  async put<T>(endpoint: string, body?: unknown): Promise<ApiResponse<T>> {
     return this.request<T>(endpoint, {
       method: 'PUT',
       body: body ? JSON.stringify(body) : undefined,
@@ -182,7 +182,7 @@ export class ApiError extends Error {
     message: string,
     public code: string,
     public status: number,
-    public details?: any
+    public details?: unknown
   ) {
     super(message)
     this.name = 'ApiError'

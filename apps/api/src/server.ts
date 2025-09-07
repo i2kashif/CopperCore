@@ -53,7 +53,7 @@ await server.register(cookie, {
 })
 
 // Health check endpoint with database status
-server.get('/health', async (request, reply) => {
+server.get('/health', async () => {
   const dbHealth = await checkDatabaseHealth()
   
   return {
@@ -68,7 +68,7 @@ server.get('/health', async (request, reply) => {
   }
 })
 
-server.get('/api/ping', async (request, reply) => {
+server.get('/api/ping', async () => {
   return { message: 'pong', service: 'CopperCore API', version: '1.0.0' }
 })
 
@@ -83,7 +83,7 @@ startSessionCleanup()
 
 const start = async () => {
   try {
-    const port = parseInt((server as any).config.PORT) || 3001
+    const port = Number(process.env.PORT ?? '3001') || 3001
     await server.listen({ port, host: '0.0.0.0' })
     server.log.info(`🚀 API server ready at http://localhost:${port}`)
   } catch (err) {

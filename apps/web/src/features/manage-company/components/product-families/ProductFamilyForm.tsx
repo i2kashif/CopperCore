@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { AttributeBuilder } from './AttributeBuilder'
 import { SKUNamingBuilder } from './SKUNamingBuilder'
 import type { 

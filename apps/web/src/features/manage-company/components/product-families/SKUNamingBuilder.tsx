@@ -73,7 +73,7 @@ export function SKUNamingBuilder({ namingRule, onChange, attributes }: Props) {
     setPattern('')
   }
 
-  const useTemplatePattern = (template: string) => {
+  const applyTemplatePattern = (template: string) => {
     setPattern(template)
   }
 
@@ -114,7 +114,7 @@ export function SKUNamingBuilder({ namingRule, onChange, attributes }: Props) {
               <button
                 key={index}
                 type="button"
-                onClick={() => useTemplatePattern(template.pattern.replace('{separator}', separator))}
+                onClick={() => applyTemplatePattern(template.pattern.replace('{separator}', separator))}
                 className="p-3 text-left border border-gray-200 rounded-lg hover:bg-white hover:border-copper-300 focus:outline-none focus:ring-2 focus:ring-copper-500"
               >
                 <div className="text-sm font-medium text-gray-900">{template.name}</div>
@@ -177,7 +177,7 @@ export function SKUNamingBuilder({ namingRule, onChange, attributes }: Props) {
               </label>
               <select
                 value={caseTransform}
-                onChange={(e) => setCaseTransform(e.target.value as any)}
+                onChange={(e) => setCaseTransform(e.target.value as SKUNamingRule['caseTransform'])}
                 className="block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-copper-500 focus:border-copper-500"
               >
                 <option value="none">Keep Original</option>

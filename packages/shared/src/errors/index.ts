@@ -47,6 +47,42 @@ export type ApiSuccessResponse<T> = {
 
 export type ApiResponse<T> = ApiSuccessResponse<T> | ApiErrorResponse
 
+// Shape returned by DB functions (via SQL JSONB)
+type DbFunctionSuccess<T> = {
+  success: true
+  data: T
+  http_status: 200
+}
+
+type DbFunctionConflict = {
+  success: false
+  error: 'VERSION_CONFLICT'
+  message?: string
+  current_version: number
+  expected_version: number
+  http_status: 409
+}
+
+type DbFunctionNotFound = {
+  success: false
+  error: 'RECORD_NOT_FOUND'
+  message?: string
+  http_status: 404
+}
+
+type DbFunctionUpdateFailed = {
+  success: false
+  error: 'UPDATE_FAILED'
+  message: string
+  http_status: 500
+}
+
+export type DbFunctionResult<T> =
+  | DbFunctionSuccess<T>
+  | DbFunctionConflict
+  | DbFunctionNotFound
+  | DbFunctionUpdateFailed
+
 // Error handling utilities
 export class OptimisticLockingError extends Error {
   constructor(
@@ -67,7 +103,7 @@ export class RecordNotFoundError extends Error {
 }
 
 // Helper function to handle database function results
-export function handleDbFunctionResult<T>(result: any): ApiResponse<T> {
+export function handleDbFunctionResult<T>(result: DbFunctionResult<T>): ApiResponse<T> {
   if (result.success) {
     return {
       success: true,
@@ -76,15 +112,37 @@ export function handleDbFunctionResult<T>(result: any): ApiResponse<T> {
     }
   }
 
+  if (result.error === 'VERSION_CONFLICT') {
+    return {
+      success: false,
+      error: {
+        error: 'VERSION_CONFLICT',
+        message: result.message ?? `Version conflict: expected ${result.expected_version}, found ${result.current_version}`,
+        currentVersion: result.current_version,
+        expectedVersion: result.expected_version,
+        httpStatus: 409,
+      },
+    }
+  }
+
+  if (result.error === 'RECORD_NOT_FOUND') {
+    return {
+      success: false,
+      error: {
+        error: 'RECORD_NOT_FOUND',
+        message: result.message ?? 'Record not found',
+        httpStatus: 404,
+      },
+    }
+  }
+
   return {
     success: false,
     error: {
-      error: result.error,
+      error: 'UPDATE_FAILED',
       message: result.message,
-      ...(result.current_version && { currentVersion: result.current_version }),
-      ...(result.expected_version && { expectedVersion: result.expected_version }),
-      httpStatus: result.http_status,
-    } as any,
+      httpStatus: 500,
+    },
   }
 }
 

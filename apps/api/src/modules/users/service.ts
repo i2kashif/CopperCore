@@ -6,7 +6,6 @@ import {
   listQuerySchema,
   createErrorResponse, 
   createSuccessResponse,
-  validateFactoryScope,
   isGlobalRole,
   canManageUsers
 } from '../common/validation'
@@ -97,8 +96,8 @@ export class UsersService {
       // Transform data to include assigned_factories
       const transformedUsers = (users || []).map(user => {
         const assignedFactories = user.user_factory_assignments
-          ?.filter((assignment: any) => assignment.is_active)
-          .map((assignment: any) => assignment.factory_id) || []
+          ?.filter((assignment: { is_active: boolean }) => assignment.is_active)
+          .map((assignment: { factory_id: string }) => assignment.factory_id) || []
         
         return {
           ...user,
@@ -152,8 +151,8 @@ export class UsersService {
       // Check if user can view this user (factory scope for non-managers)
       if (!canManageUsers(userContext.role)) {
         const userFactoryIds = user.user_factory_assignments
-          ?.filter((assignment: any) => assignment.is_active)
-          .map((assignment: any) => assignment.factory_id) || []
+          ?.filter((assignment: { is_active: boolean }) => assignment.is_active)
+          .map((assignment: { factory_id: string }) => assignment.factory_id) || []
         
         const hasSharedFactory = userFactoryIds.some(factoryId => 
           userContext.factory_ids.includes(factoryId)
@@ -166,8 +165,8 @@ export class UsersService {
       
       // Transform response
       const assignedFactories = user.user_factory_assignments
-        ?.filter((assignment: any) => assignment.is_active)
-        .map((assignment: any) => assignment.factory_id) || []
+        ?.filter((assignment: { is_active: boolean }) => assignment.is_active)
+        .map((assignment: { factory_id: string }) => assignment.factory_id) || []
       
       const userResponse = {
         ...user,
@@ -308,6 +307,7 @@ export class UsersService {
   /**
    * Update user with factory assignments (CEO/Director only)
    */
+  // eslint-disable-next-line complexity
   async update(
     id: string,
     input: z.infer<typeof updateUserSchema>,
@@ -403,8 +403,8 @@ export class UsersService {
       
       // Update factory assignments if provided
       let finalFactoryIds = currentUser.user_factory_assignments
-        ?.filter((assignment: any) => assignment.is_active)
-        .map((assignment: any) => assignment.factory_id) || []
+        ?.filter((assignment: { is_active: boolean }) => assignment.is_active)
+        .map((assignment: { factory_id: string }) => assignment.factory_id) || []
       
       if (factory_ids !== undefined) {
         // Validate new factory assignments for non-global users
@@ -460,7 +460,7 @@ export class UsersService {
         entity_id: id,
         action: 'UPDATE',
         user_id: userContext.user_id,
-        before_values: { ...currentUser, assigned_factories: currentUser.user_factory_assignments?.map((a: any) => a.factory_id) },
+        before_values: { ...currentUser, assigned_factories: currentUser.user_factory_assignments?.map((a: { factory_id: string }) => a.factory_id) },
         after_values: { ...user, assigned_factories: finalFactoryIds },
         session_id: userContext.session_id
       })
@@ -628,7 +628,7 @@ export class UsersService {
         acc.by_role[user.role] = (acc.by_role[user.role] || 0) + 1
         
         // Count factory assignments
-        user.user_factory_assignments?.forEach((assignment: any) => {
+        user.user_factory_assignments?.forEach((assignment: { is_active: boolean; factory_id: string }) => {
           if (assignment.is_active) {
             acc.by_factory[assignment.factory_id] = (acc.by_factory[assignment.factory_id] || 0) + 1
           }

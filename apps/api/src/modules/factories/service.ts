@@ -1,4 +1,4 @@
-import { getSupabaseClient, getFactoryScopedClient } from '../../lib/supabase'
+import { getSupabaseClient } from '../../lib/supabase'
 import { Factory, UserContext, ApiResponse, ListQuery, OptimisticLockError, ErrorCodes } from '../common/types'
 import { 
   createFactorySchema, 

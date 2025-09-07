@@ -1,5 +1,5 @@
 import { getSupabaseClient } from '../../lib/supabase'
-import { AuditEvent, ErrorCodes } from '../common/types'
+import { AuditEvent } from '../common/types'
 import { auditEventSchema } from '../common/validation'
 import { createHash } from 'crypto'
 import { z } from 'zod'
@@ -20,8 +20,8 @@ interface AuditEventInput {
   action: 'CREATE' | 'UPDATE' | 'DELETE' | 'APPROVE' | 'REJECT'
   factory_id?: string
   user_id: string
-  before_values?: Record<string, any>
-  after_values?: Record<string, any>
+  before_values?: Record<string, unknown>
+  after_values?: Record<string, unknown>
   reason?: string
   session_id?: string
   ip_address?: string
@@ -117,6 +117,7 @@ export class AuditService {
   /**
    * Verify audit chain integrity
    */
+  // eslint-disable-next-line complexity
   async verifyAuditChain(
     startDate?: string, 
     endDate?: string
@@ -164,10 +165,11 @@ export class AuditService {
       
       for (const event of events) {
         // Reconstruct the event input for hash generation
+        type ActionType = AuditEventInput['action']
         const eventInput: AuditEventInput = {
           entity_type: event.entity_type,
           entity_id: event.entity_id,
-          action: event.action as any,
+          action: event.action as ActionType,
           factory_id: event.factory_id || undefined,
           user_id: event.user_id,
           before_values: event.before_values || undefined,
@@ -266,6 +268,7 @@ export class AuditService {
   /**
    * Get audit statistics
    */
+  // eslint-disable-next-line complexity
   async getAuditStats(
     factoryId?: string,
     startDate?: string,

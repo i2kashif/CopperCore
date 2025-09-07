@@ -69,6 +69,7 @@ interface WithRoleGuardOptions {
   requireFactory?: boolean
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function withRoleGuard<P extends object>(
   Component: React.ComponentType<P>,
   options: WithRoleGuardOptions

@@ -54,25 +54,13 @@ export function useFactories() {
   const [initialized, setInitialized] = useState(false)
   const { showToast } = useToast()
   
-  // BACK-16: Realtime updates for factories
-  const realtimeCallbacks = useMemo(() => ({
-    onFactoryChange: (event: any) => {
-      console.log('🔄 Realtime factory change:', event)
-      if (event.eventType === 'INSERT' || event.eventType === 'UPDATE' || event.eventType === 'DELETE') {
-        refreshFactories()
-      }
-    }
-  }), [])
-  
-  const { triggerRefresh } = useRealtimeUpdates(realtimeCallbacks)
-
   // Fetch factories on mount
   useEffect(() => {
     if (!initialized) {
       fetchFactories()
       setInitialized(true)
     }
-  }, [initialized])
+  }, [initialized, fetchFactories])
 
   const fetchFactories = useCallback(async () => {
     setLoading(true)
@@ -264,6 +252,19 @@ export function useFactories() {
     console.log('🔄 Refreshing factories data...')
     await fetchFactories()
   }, [fetchFactories])
+
+  // BACK-16: Realtime updates for factories
+  const realtimeCallbacks = useMemo(() => ({
+    onFactoryChange: (event: { eventType: 'INSERT' | 'UPDATE' | 'DELETE' }) => {
+      // eslint-disable-next-line no-console
+      console.log('🔄 Realtime factory change:', event)
+      if (event.eventType === 'INSERT' || event.eventType === 'UPDATE' || event.eventType === 'DELETE') {
+        refreshFactories()
+      }
+    }
+  }), [refreshFactories])
+
+  useRealtimeUpdates(realtimeCallbacks)
 
   return {
     factories,

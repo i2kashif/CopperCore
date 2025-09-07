@@ -59,9 +59,16 @@ export function setVersionHeader(reply: FastifyReply, version: number): void {
 }
 
 // Example middleware usage in route handler
+interface UpdateWorkOrderData {
+  target_quantity?: number
+  current_quantity?: number
+  status?: string
+  priority?: string
+}
+
 export interface OptimisticUpdateRequest extends FastifyRequest {
   Body: {
-    data: Record<string, any>
+    data: UpdateWorkOrderData
   }
   Params: {
     id: string
@@ -76,10 +83,10 @@ export async function updateWorkOrderHandler(
   try {
     const { id } = request.params as { id: string }
     const expectedVersion = validateVersionHeader(request)
-    const updateData = (request.body as any).data
+    const updateData = request.body.data
 
     // Call database function with optimistic locking  
-    const result = await (request.server as any).supabase
+    const result = await (request.server as { supabase: { rpc: (_fn: string, _args: unknown) => Promise<{ data: unknown }> } }).supabase
       .rpc('update_work_order_safe', {
         p_id: id,
         p_expected_version: expectedVersion,
@@ -102,7 +109,7 @@ export async function updateWorkOrderHandler(
     }
 
     // Set version header for successful updates
-    setVersionHeader(reply, (response.data as any).version)
+    setVersionHeader(reply, (response.data as { version: number }).version)
 
     return reply.status(200).send(response)
 
@@ -121,7 +128,8 @@ export async function updateWorkOrderHandler(
 }
 
 // Plugin to register optimistic locking middleware
-export async function optimisticLockingPlugin(fastify: any) {
+import type { FastifyInstance } from 'fastify'
+export async function optimisticLockingPlugin(fastify: FastifyInstance) {
   // Register error handler
   fastify.setErrorHandler(optimisticLockingErrorHandler)
 

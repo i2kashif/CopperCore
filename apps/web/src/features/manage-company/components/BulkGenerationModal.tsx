@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Button } from '../../../components/ui/Button'
 import { useSKUs } from '../hooks/useSKUs'
-import type { ProductFamily, ProductFamilyAttribute } from '../types/productFamily'
+import type { ProductFamily } from '../types/productFamily'
 import type { BulkSKUGenerationData } from '../types/sku'
 
 interface BulkGenerationModalProps {
@@ -306,7 +306,7 @@ export function BulkGenerationModal({ onClose, families }: BulkGenerationModalPr
                     </svg>
                     <div className="ml-3">
                       <p className="text-sm text-yellow-700">
-                        You're about to generate {totalCombinations} SKUs. This may take a moment.
+                        You&apos;re about to generate {totalCombinations} SKUs. This may take a moment.
                       </p>
                     </div>
                   </div>

@@ -171,8 +171,8 @@ export interface Database {
           action: 'CREATE' | 'UPDATE' | 'DELETE' | 'APPROVE' | 'REJECT'
           factory_id?: string
           user_id: string
-          before_values?: Record<string, any>
-          after_values?: Record<string, any>
+          before_values?: Record<string, unknown>
+          after_values?: Record<string, unknown>
           reason?: string
           ip_address?: string
           user_agent?: string
@@ -192,8 +192,8 @@ export interface Database {
           action: 'CREATE' | 'UPDATE' | 'DELETE' | 'APPROVE' | 'REJECT'
           factory_id?: string
           user_id: string
-          before_values?: Record<string, any>
-          after_values?: Record<string, any>
+          before_values?: Record<string, unknown>
+          after_values?: Record<string, unknown>
           reason?: string
           ip_address?: string
           user_agent?: string
@@ -213,8 +213,8 @@ export interface Database {
           action?: 'CREATE' | 'UPDATE' | 'DELETE' | 'APPROVE' | 'REJECT'
           factory_id?: string
           user_id?: string
-          before_values?: Record<string, any>
-          after_values?: Record<string, any>
+          before_values?: Record<string, unknown>
+          after_values?: Record<string, unknown>
           reason?: string
           ip_address?: string
           user_agent?: string
@@ -242,26 +242,26 @@ export interface Database {
         Returns: void
       }
       begin_transaction: {
-        Args: {}
+        Args: Record<string, never>
         Returns: void
       }
       commit_transaction: {
-        Args: {}
+        Args: Record<string, never>
         Returns: void
       }
       rollback_transaction: {
-        Args: {}
+        Args: Record<string, never>
         Returns: void
       }
       execute_sql: {
         Args: {
           query: string
-          params: any[]
+          params: unknown[]
         }
-        Returns: any
+        Returns: unknown
       }
       get_connection_stats: {
-        Args: {}
+        Args: Record<string, never>
         Returns: {
           active_connections?: number
           idle_connections?: number

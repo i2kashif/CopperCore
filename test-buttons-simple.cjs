@@ -1,3 +1,5 @@
+/* eslint-env node, browser */
+/* eslint-disable @typescript-eslint/no-var-requires, no-undef, max-lines-per-function, complexity, max-depth */
 const puppeteer = require('puppeteer');
 const path = require('path');
 const fs = require('fs').promises;

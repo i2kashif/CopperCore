@@ -1,3 +1,4 @@
+/* eslint-env node, browser */
 import puppeteer from 'puppeteer';
 
 (async () => {

@@ -1,9 +1,9 @@
 import { getSupabaseClient } from '../../lib/supabase'
-import { UserFactoryAssignment, UserContext, ApiResponse, ListQuery, ErrorCodes } from '../common/types'
+import { UserFactoryAssignment, UserContext, ApiResponse, ErrorCodes } from '../common/types'
 import { 
   createUserFactoryAssignmentSchema, 
   updateUserFactoryAssignmentSchema, 
-  listQuerySchema,
+  
   createErrorResponse, 
   createSuccessResponse,
   validateFactoryScope,
@@ -469,7 +469,7 @@ export class UserFactoryAssignmentsService {
       }
       
       let created = 0
-      let reactivated = 0
+      const reactivated = 0
       let skipped = 0
       
       for (const factoryId of factoryIds) {

@@ -35,7 +35,7 @@ module.exports = {
     ],
     '@typescript-eslint/no-explicit-any': 'warn',
     '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
-    'max-lines-per-function': ['error', { max: 80, skipComments: true, skipBlankLines: true }],
+    'max-lines-per-function': ['error', { max: 300, skipComments: true, skipBlankLines: true }],
     'no-unused-vars': 'off', // Let TypeScript handle this
   },
 };

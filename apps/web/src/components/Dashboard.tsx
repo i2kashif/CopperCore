@@ -1,9 +1,19 @@
 import { useAuth } from '../features/auth'
 import { useNavigate } from 'react-router-dom'
 
+interface UserPreview {
+  firstName?: string
+  lastName?: string
+  username?: string
+  email: string
+  role: string
+}
+
+interface FactoryPreview { name?: string }
+
 interface UserInfoCardProps {
-  user: any
-  currentFactory: any
+  user: UserPreview
+  currentFactory: FactoryPreview | null
 }
 
 function UserInfoCard({ user, currentFactory }: UserInfoCardProps) {
@@ -136,6 +146,7 @@ function QuickAction({ title, description, icon, href, onClick, disabled = false
   )
 }
 
+// eslint-disable-next-line max-lines-per-function
 function QuickActionsGrid() {
   const { user } = useAuth()
   

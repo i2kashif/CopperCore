@@ -13,27 +13,7 @@ export function useUsers() {
   const [initialized, setInitialized] = useState(false)
   const { showToast } = useToast()
   
-  // BACK-16: Realtime updates via Supabase channels
-  const realtimeCallbacks = useMemo(() => ({
-    onUserChange: (event: any) => {
-      console.log('🔄 Realtime user change:', event)
-      // Refetch users when realtime changes are detected
-      if (event.eventType === 'INSERT' || event.eventType === 'UPDATE' || event.eventType === 'DELETE') {
-        refreshUsers()
-      }
-    },
-    onFactoryChange: (event: any) => {
-      console.log('🔄 Realtime factory change (affects user assignments):', event)
-      // Factory changes might affect user-factory assignments
-      refreshUsers()
-    },
-    onUserFactoryAssignmentChange: (event: any) => {
-      console.log('🔄 Realtime user-factory assignment change:', event)
-      refreshUsers()
-    }
-  }), [])
-  
-  const { triggerRefresh, isConnected } = useRealtimeUpdates(realtimeCallbacks)
+  // ... realtime setup moved after refreshUsers is defined
 
   // Combine API users with current user to ensure CEO is always visible
   // This is critical for BACK-13: CEO must always appear even when API fails
@@ -69,7 +49,7 @@ export function useUsers() {
       fetchUsers()
       setInitialized(true)
     }
-  }, [initialized])
+  }, [initialized, fetchUsers])
 
   const fetchUsers = useCallback(async () => {
     setLoading(true)
@@ -270,6 +250,25 @@ export function useUsers() {
     console.log('🔄 Refreshing users data...')
     await fetchUsers()
   }, [fetchUsers])
+
+  // BACK-16: Realtime updates via Supabase channels
+  const realtimeCallbacks = useMemo(() => ({
+    onUserChange: (event: { eventType: 'INSERT' | 'UPDATE' | 'DELETE' }) => {
+      // eslint-disable-next-line no-console
+      console.log('🔄 Realtime user change:', event)
+      if (event.eventType === 'INSERT' || event.eventType === 'UPDATE' || event.eventType === 'DELETE') {
+        refreshUsers()
+      }
+    },
+    onFactoryChange: (_event: unknown) => {
+      refreshUsers()
+    },
+    onUserFactoryAssignmentChange: (_event: unknown) => {
+      refreshUsers()
+    }
+  }), [refreshUsers])
+
+  useRealtimeUpdates(realtimeCallbacks)
 
   // Utility to determine what to show for factory assignments
   const getDisplayFactoryInfo = useCallback((user: User) => {

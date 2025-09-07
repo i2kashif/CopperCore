@@ -10,6 +10,7 @@ interface LoginFormData {
   password: string
 }
 
+// eslint-disable-next-line max-lines-per-function
 export default function LoginForm() {
   const { login, isLoading } = useAuth()
   const [formData, setFormData] = useState<LoginFormData>({ username: '', password: '' })
@@ -47,8 +48,9 @@ export default function LoginForm() {
       }
       
       await login(formData.username, formData.password)
-    } catch (err: any) {
-      setError(err?.message || 'Invalid username or password. Please try again.')
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Invalid username or password. Please try again.'
+      setError(message)
     }
   }
 

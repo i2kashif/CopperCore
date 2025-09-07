@@ -162,8 +162,9 @@ export default function FactorySelector() {
 
     try {
       await selectFactory(factoryId)
-    } catch (err: any) {
-      setError(err.message || 'Failed to select factory')
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to select factory'
+      setError(message)
     } finally {
       setIsSelecting(false)
     }

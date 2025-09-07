@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState } from 'react'
 import type { 
   ProductFamily, 
   ProductFamilyFormData, 
@@ -445,8 +445,7 @@ export function useProductFamilies() {
     filters: ProductFamilyFilters,
     sort: ProductFamilySort
   ) => {
-    return useMemo(() => {
-      let filtered = productFamilies
+    let filtered = productFamilies
 
       // Apply filters
       if (filters.search) {
@@ -470,38 +469,38 @@ export function useProductFamilies() {
         }
       }
 
-      // Apply sorting
-      filtered.sort((a, b) => {
-        let aValue: any, bValue: any
+    // Apply sorting
+    filtered.sort((a, b) => {
+      let aValue: string | number | Date
+      let bValue: string | number | Date
 
-        switch (sort.field) {
-          case 'name':
-            aValue = a.name
-            bValue = b.name
-            break
-          case 'code':
-            aValue = a.code
-            bValue = b.code
-            break
-          case 'createdAt':
-            aValue = new Date(a.createdAt)
-            bValue = new Date(b.createdAt)
-            break
-          case 'attributeCount':
-            aValue = a.attributes.length
-            bValue = b.attributes.length
-            break
-          default:
-            return 0
-        }
+      switch (sort.field) {
+        case 'name':
+          aValue = a.name
+          bValue = b.name
+          break
+        case 'code':
+          aValue = a.code
+          bValue = b.code
+          break
+        case 'createdAt':
+          aValue = new Date(a.createdAt)
+          bValue = new Date(b.createdAt)
+          break
+        case 'attributeCount':
+          aValue = a.attributes.length
+          bValue = b.attributes.length
+          break
+        default:
+          return 0
+      }
 
-        if (aValue < bValue) return sort.direction === 'asc' ? -1 : 1
-        if (aValue > bValue) return sort.direction === 'asc' ? 1 : -1
-        return 0
-      })
+      if (aValue < bValue) return sort.direction === 'asc' ? -1 : 1
+      if (aValue > bValue) return sort.direction === 'asc' ? 1 : -1
+      return 0
+    })
 
-      return filtered
-    }, [productFamilies, filters, sort])
+    return filtered
   }
 
   // Create a new product family

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Button } from '../../../components/ui/Button'
 import { useSKUs } from '../hooks/useSKUs'
-import type { ProductFamily, ProductFamilyAttribute } from '../types/productFamily'
+import type { ProductFamily } from '../types/productFamily'
 import type { SKUFormData } from '../types/sku'
 
 interface SKUCreationWizardProps {

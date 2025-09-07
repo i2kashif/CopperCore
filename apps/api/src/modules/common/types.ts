@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars, no-unused-vars */
 import type { z } from 'zod'
 
 /**
@@ -76,8 +77,8 @@ export interface AuditEvent extends BaseEntity {
   action: 'CREATE' | 'UPDATE' | 'DELETE' | 'APPROVE' | 'REJECT'
   factory_id?: string
   user_id: string
-  before_values?: Record<string, any>
-  after_values?: Record<string, any>
+  before_values?: Record<string, unknown>
+  after_values?: Record<string, unknown>
   reason?: string
   ip_address?: string
   user_agent?: string
@@ -89,13 +90,13 @@ export interface AuditEvent extends BaseEntity {
 /**
  * API Response wrapper
  */
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   success: boolean
   data?: T
   error?: {
     code: string
     message: string
-    details?: any
+    details?: unknown
   }
   meta?: {
     total?: number

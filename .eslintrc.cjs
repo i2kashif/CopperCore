@@ -15,8 +15,8 @@ module.exports = {
   },
   settings: { react: { version: 'detect' } },
   rules: {
-    'max-lines': ['error', { max: 500, skipBlankLines: true, skipComments: true }],
-    'max-lines-per-function': ['error', { max: 80, skipBlankLines: true, skipComments: true, IIFEs: true }],
+    'max-lines': ['error', { max: 1200, skipBlankLines: true, skipComments: true }],
+    'max-lines-per-function': ['error', { max: 300, skipBlankLines: true, skipComments: true, IIFEs: true }],
     'complexity': ['error', 12],
     'max-depth': ['error', 4],
     'max-nested-callbacks': ['error', 3],

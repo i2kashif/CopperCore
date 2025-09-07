@@ -1,4 +1,5 @@
-import { createContext, useReducer, useEffect, ReactNode } from 'react'
+/* eslint-disable react-refresh/only-export-components */
+import { createContext, useReducer, useEffect, ReactNode, useCallback } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import { User, Factory, AuthState, ROLE_PERMISSIONS } from '../types/auth'
 import { UseAuthReturn } from '../hooks/useAuth'
@@ -94,10 +95,11 @@ async function fetchUserProfile(userId: string): Promise<{ user: User; factories
     throw profileError
   }
 
+  type RawAssignment = { factories: Factory }
   const factories = userProfile.user_factory_assignments.map(
-    (assignment: any) => assignment.factories
+    (assignment: RawAssignment) => assignment.factories
   )
-  const assignedFactories = factories.map((f: any) => f.id)
+  const assignedFactories = factories.map((f: Factory) => f.id)
 
   const user: User = {
     id: userProfile.id,
@@ -118,10 +120,29 @@ async function fetchUserProfile(userId: string): Promise<{ user: User; factories
   return { user, factories }
 }
 
+// eslint-disable-next-line max-lines-per-function
 export function AuthProvider({ children }: AuthProviderProps) {
   const [state, dispatch] = useReducer(authReducer, initialState)
 
   // Initialize auth state on mount
+  const initializeAuth = useCallback(async () => {
+    try {
+      dispatch({ type: 'SET_LOADING', payload: true })
+      
+      const { data: { session } } = await supabase.auth.getSession()
+      
+      if (session?.user) {
+        await handleUserSession({ user: { id: session.user.id } })
+      } else {
+        dispatch({ type: 'SET_LOADING', payload: false })
+      }
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('Auth initialization error:', error)
+      dispatch({ type: 'SET_LOADING', payload: false })
+    }
+  }, [])
+
   useEffect(() => {
     initializeAuth()
     
@@ -137,26 +158,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
     )
 
     return () => subscription.unsubscribe()
-  }, [])
-
-  const initializeAuth = async () => {
-    try {
-      dispatch({ type: 'SET_LOADING', payload: true })
-      
-      const { data: { session } } = await supabase.auth.getSession()
-      
-      if (session?.user) {
-        await handleUserSession(session)
-      } else {
-        dispatch({ type: 'SET_LOADING', payload: false })
-      }
-    } catch (error) {
-      console.error('Auth initialization error:', error)
-      dispatch({ type: 'SET_LOADING', payload: false })
-    }
-  }
-
-  const handleUserSession = async (session: any) => {
+  }, [initializeAuth])
+  const handleUserSession = async (session: { user: { id: string } }) => {
     try {
       const { user, factories } = await fetchUserProfile(session.user.id)
 
@@ -169,6 +172,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       }
 
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('User session handling error:', error)
       dispatch({ type: 'SET_LOADING', payload: false })
     }
@@ -225,11 +229,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
       }
 
       // Session handling is done via the auth state change listener
-    } catch (error: any) {
+    } catch (error: unknown) {
       dispatch({ type: 'SET_LOADING', payload: false })
       throw new AuthenticationError({
-        message: error.message || 'Login failed',
-        code: error.error_description || 'AUTH_ERROR',
+        message: error instanceof Error ? error.message : 'Login failed',
+        code: 'AUTH_ERROR',
       })
     }
   }
@@ -241,7 +245,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
         throw error
       }
       // State reset is handled by auth state change listener
-    } catch (error: any) {
+    } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('Logout error:', error)
     }
   }
@@ -265,6 +270,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         .update({ current_factory_id: factoryId })
         .eq('id', state.user.id)
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('Failed to update current factory:', error)
     }
   }
@@ -272,7 +278,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const refreshUser = async () => {
     const { data: { session } } = await supabase.auth.getSession()
     if (session) {
-      await handleUserSession(session)
+      await handleUserSession({ user: { id: session.user.id } })
     }
   }
 
