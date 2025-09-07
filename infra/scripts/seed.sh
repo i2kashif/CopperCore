@@ -5,10 +5,10 @@
 set -e
 
 SEED_DIR="$(cd "$(dirname "$0")/../seed" && pwd)"
-DB_URL="${DATABASE_URL:-${TEST_DB_URL}}"
+DB_URL="${DATABASE_URL}"
 
 if [ -z "$DB_URL" ]; then
-  echo "❌ Error: DATABASE_URL or TEST_DB_URL must be set"
+  echo "❌ Error: DATABASE_URL must be set"
   exit 1
 fi
 

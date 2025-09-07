@@ -49,7 +49,7 @@ jobs:
           - 5432:5432
           
     env:
-      TEST_DB_URL: postgresql://postgres:postgres@localhost:5432/coppercore_test
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/coppercore_test
       
     steps:
       - uses: actions/checkout@v4
@@ -81,7 +81,7 @@ jobs:
           git diff --name-only HEAD~1 HEAD | grep -E "(migrations|policies)" >> migration_summary.md || echo "No migration files changed"
           echo "" >> migration_summary.md
           echo "**Database Schema Changes:**" >> migration_summary.md
-          psql "$TEST_DB_URL" -c "\dt" >> migration_summary.md
+          psql "$DATABASE_URL" -c "\dt" >> migration_summary.md
           
       - name: Upload migration artifacts
         uses: actions/upload-artifact@v4
@@ -95,7 +95,6 @@ jobs:
     runs-on: ubuntu-latest
     needs: validate-migrations
     if: github.ref == 'refs/heads/develop' || github.event_name == 'workflow_dispatch'
-    environment: staging
     
     steps:
       - uses: actions/checkout@v4
@@ -110,14 +109,14 @@ jobs:
           
       - name: Apply migrations to staging
         env:
-          DATABASE_URL: ${{ secrets.SUPABASE_STAGING_URL }}
+          DATABASE_URL: ${{ secrets.SUPABASE_URL_PREVIEW }}
         run: |
           echo "🚀 Applying migrations to staging environment..."
           ./infra/scripts/migrate.sh
           
       - name: Verify staging deployment
         env:
-          DATABASE_URL: ${{ secrets.SUPABASE_STAGING_URL }}
+          DATABASE_URL: ${{ secrets.SUPABASE_URL_PREVIEW }}
         run: |
           echo "🔍 Verifying staging database state..."
           psql "$DATABASE_URL" -c "SELECT version(), current_database(), current_user;"
@@ -129,7 +128,6 @@ jobs:
     runs-on: ubuntu-latest
     needs: staging-migration
     if: startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && inputs.environment == 'production')
-    environment: production
     
     steps:
       - uses: actions/checkout@v4
@@ -153,14 +151,14 @@ jobs:
           
       - name: Production pre-flight check
         env:
-          DATABASE_URL: ${{ secrets.SUPABASE_PRODUCTION_URL }}
+          DATABASE_URL: ${{ secrets.SUPABASE_URL_PREVIEW }}
         run: |
           echo "✈️  Production pre-flight check..."
           psql "$DATABASE_URL" -c "SELECT 'Production DB Connection: OK';"
           
       - name: Apply migrations to production
         env:
-          DATABASE_URL: ${{ secrets.SUPABASE_PRODUCTION_URL }}
+          DATABASE_URL: ${{ secrets.SUPABASE_URL_PREVIEW }}
         run: |
           echo "🚀 Applying migrations to PRODUCTION environment..."
           echo "⚠️  This will modify production data!"
@@ -168,7 +166,7 @@ jobs:
           
       - name: Post-deployment verification
         env:
-          DATABASE_URL: ${{ secrets.SUPABASE_PRODUCTION_URL }}
+          DATABASE_URL: ${{ secrets.SUPABASE_URL_PREVIEW }}
         run: |
           echo "🔍 Post-deployment verification..."
           psql "$DATABASE_URL" -c "
