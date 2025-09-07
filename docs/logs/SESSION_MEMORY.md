@@ -255,6 +255,172 @@ d990b4b - FIx for failing CI issue (rebase resolution)
 
 ---
 
+## 2025-09-07 Session: CopperCore Feature Planning (UI-First Approach)
+
+### Context: Post-Infrastructure, Pre-Implementation
+- **Previous Work**: All infrastructure complete (Sections A-H), Database Schema Foundation (I-1.1) implemented
+- **User Feedback**: "Features more elaborate, user login should be first, then CEO manage company tab"
+- **Branch**: `mgmt/checklist-focus` (created for SESSION_CHECKLIST refactoring)
+
+### Major Shift: UI-First Development Approach ✅
+
+#### Problem Identified
+- SESSION_CHECKLIST dominated by 40+ completed housekeeping items
+- Original priorities jumped to complex business logic before authentication
+- Need for logical development progression: Auth → Admin → Business workflows
+
+#### Solution Implemented: "Now (Next 5)" Priority Queue
+**Logical Progression**: Authentication → Company Management → User Profile → Infrastructure → Business Logic
+
+### SESSION_CHECKLIST Refactoring ✅
+- **File**: `docs/logs/SESSION_CHECKLIST.md` - Complete restructure
+- **Changes**: 
+  - Consolidated housekeeping A-H → single foundation line  
+  - Created "Now (Next 5)" priority implementation queue
+  - Added PRD references (§5.3, §12.1) and acceptance test IDs
+  - Reordered sections: Now → In Progress → Todo → Blocked → Done
+
+### Comprehensive GitHub Issues Planning ✅
+
+#### **1. UI-1: Authentication System Foundation** (~1,200 lines)
+- **Priority**: #1 - Foundation for all UI development
+- **Scope**: Supabase Auth + factory selection + role-based routing + session management
+- **Key Components**: AuthProvider, FactoryProvider, LoginForm, RouteGuard
+- **User Flow**: Login → Factory Selection → Role-appropriate Dashboard → Session Persistence
+- **Tests**: Unit (context), Integration (JWT+RLS), E2E (complete flow)
+- **Dependencies**: RLS policies, user factory assignments table
+
+#### **2. UI-2: Manage Company Dashboard** (~2,800 lines)  
+- **Priority**: #2 - Essential company setup and user management
+- **Scope**: CEO factories/users/assignments management + bulk operations
+- **Key Components**: CompanyDashboard, FactoryManagement, UserManagement, AssignmentMatrix
+- **Features**: Factory CRUD, user role assignment, visual assignment matrix, CSV import
+- **UX Design**: Header navigation, sidebar, factory cards, assignment grid
+- **Backend**: ~800 lines (company routes, services, validation)
+
+#### **3. UI-3: User Profile & Factory Context** (~1,000 lines)
+- **Priority**: #3 - Multi-factory user experience foundation  
+- **Scope**: Factory switching + role display + session management + preferences
+- **Key Components**: UserProfile, FactorySwitcher, ContextDisplay, permission hooks
+- **UX Features**: Header context display, keyboard shortcuts (Ctrl+Shift+F), role indicators
+- **Context Management**: Persistent factory context, session timeout warnings
+
+#### **4. F-6.1: Realtime Infrastructure Foundation** (~2,000 lines)
+- **Priority**: #4 - Supports all future real-time workflows
+- **Scope**: Entity-scoped channels + cache invalidation + Supabase integration  
+- **Architecture**: ChannelManager, QueryInvalidator, OptimisticUpdater
+- **Channel Patterns**: `factory:<id>`, `doc:<type>:<id>`, `list:<type>:<factoryId>`
+- **PRD References**: §3.7 (Realtime), §12.7 (Acceptance Test)
+- **Features**: Debounced updates (250-500ms), factory scoping, connection resilience
+
+#### **5. F-1.1: WO Material Return Constraints** (~1,800 lines)
+- **Priority**: #5 - Business logic foundation with strict integrity
+- **Scope**: Returns ≤ issued per lot validation + audit trail + error handling
+- **Core Logic**: `Returnable Qty = Issued Qty - Previously Returned Qty`
+- **Error Handling**: 422 responses with detailed quantity breakdowns
+- **PRD References**: §5.3 (WO transactions), §12.1 (Acceptance Test)
+- **Files**: ReturnValidator, MaterialTransactionService, validation middleware
+
+### GitHub Integration Readiness ✅
+
+#### Files Created for Execution
+- **`github_commands_to_run.md`**: Complete CLI commands for PR + 5 issues (~596 lines)
+- **`github_issues_plan.md`**: Detailed issue templates with specifications (~554 lines)  
+- **`READY_TO_EXECUTE.md`**: Final status and execution guide (~109 lines)
+
+#### Commands Prepared (Post-Authentication)
+```bash
+gh auth login
+# Then execute prepared commands for:
+# 1. PR creation (SESSION_CHECKLIST refactoring)
+# 2. Issue creation (5 detailed issues with acceptance criteria)
+```
+
+### Technical Specifications Summary
+
+#### Development Scope
+- **Total Implementation**: ~8,800 lines across 5 foundational features
+- **Testing Strategy**: Unit, Integration, E2E, Load testing for each feature
+- **PRD Compliance**: Direct mapping to PRD sections and acceptance tests
+- **File Organization**: Feature-based structure respecting CLAUDE.md §13 caps (<500 lines/file)
+
+#### Authentication Architecture
+- **Context Providers**: AuthProvider + FactoryProvider for state management
+- **Route Protection**: Role-based guards (CEO/Director/FM/FW)
+- **Factory Scoping**: Multi-factory assignment with context switching
+- **JWT Integration**: Claims integration with existing RLS policies
+
+#### Company Management Features
+- **Factory Management**: CRUD with metrics, operational parameters
+- **User Management**: Role assignment with audit trail
+- **Assignment Matrix**: Visual user×factory grid with history
+- **Bulk Operations**: CSV import with validation and error handling
+
+#### Realtime Infrastructure
+- **Channel Management**: Factory-scoped subscriptions only
+- **Cache Strategy**: Targeted invalidation, optimistic updates
+- **Performance**: Connection management, subscription cleanup
+- **Cost Control**: Selective subscriptions, debounced updates
+
+### Session Commits Made
+
+#### Branch: `mgmt/checklist-focus`
+```
+c737ee1 - docs: Add READY_TO_EXECUTE status - comprehensive planning complete
+d636a4a - feat: Add comprehensive GitHub CLI commands for PR and issues creation  
+d4eac22 - docs: Add execution summary for feature planning session
+8d29085 - feat: Add detailed GitHub issues plan for UI-first feature development
+3f4c1a7 - mgmt: Revise Now (Next 5) priorities with UI-first approach
+15c2922 - mgmt: Focus SESSION_CHECKLIST on features with Now (Next 5) priority queue
+```
+
+### Development Philosophy Established
+
+#### "UI-First with Solid Foundation"
+**Core Principle**: Build proper foundation before complex business logic
+1. **Authentication First**: Users can log in with proper role context
+2. **Admin Capabilities**: CEO can set up company structure immediately  
+3. **User Experience**: Context switching works seamlessly
+4. **Infrastructure**: Real-time updates support future features
+5. **Business Logic**: Built on established validation patterns
+
+#### Logical Development Flow
+**Auth → Admin → Profile → Infrastructure → Business Logic**
+
+Each feature builds logically on the previous, creating robust and maintainable system.
+
+### Current Project Status: READY FOR FEATURE IMPLEMENTATION ✅
+
+#### Infrastructure Status
+- **Scaffolding**: ✅ Complete (monorepo, configs, CI/CD, security)
+- **Database Foundation**: ✅ Complete (I-1.1 schema, RLS, audit chain)
+- **Planning**: ✅ Complete (UI-first approach, detailed specifications)
+
+#### Immediate Next Steps
+1. **Authenticate GitHub CLI**: `gh auth login`
+2. **Execute Commands**: From `github_commands_to_run.md`
+3. **Begin Development**: Start with UI-1 (Authentication System Foundation)
+
+#### Branch Status
+- **`mgmt/checklist-focus`**: Contains all planning work, ready for PR
+- **Development Branch**: Next session should create `feat/ui-1-authentication-system`
+
+### Success Metrics Achieved ✅
+- UI-first approach established with logical progression
+- 5 priority features with comprehensive specifications (~1,800 words each)
+- Development path clear: each feature builds on previous
+- Testing strategy defined for all features  
+- Risk mitigation plans documented
+- GitHub integration ready for immediate execution
+
+### Next Session Context
+- **Status**: All planning complete, ready for implementation
+- **Starting Point**: Execute GitHub commands, begin UI-1 development
+- **Branch Context**: `mgmt/checklist-focus` ready for PR, then start feature development
+- **Priority**: Authentication System Foundation as entry point to all UI features
+
+---
+
 ## Session Guidelines for Future Claude Agents
 
 1. **Context Loading**: Read this file at session start to understand recent work
