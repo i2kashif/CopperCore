@@ -9,24 +9,56 @@ Default to **least privilege**, **plan → code → test** loops, and **reviewed
 
 ## 0) Ground Rules (Read Me First)
 
-- **Authority order:** (1) PRD-v1.5.md (supreme), (2) this `CLAUDE.md`, (3) repo docs/ADRs, (4) code comments.  
+- **Authority order:** (1) `docs/PRD/PRD_v1.5.md` (supreme), (2) this `CLAUDE.md`, (3) repo docs/ADRs, (4) code comments.  
+- **CRITICAL — Agent usage is mandatory:** Use the agent configs in **`/agents/`** for *all* work. Pick the correct role, respect its guardrails and MCP scopes. Never work outside an agent context.  
 - **Safety:** Do **not** use `--dangerously-skip-permissions`. Always request permission for file writes, shell commands, or MCP tools.  
 - **Separation of concerns:** Do **not** alter **pricing**, **numbering/series**, **RLS/policies**, **audit/backdating**, or **QC override semantics** without explicit approval (see §2.2 and §7).  
 - **Factories & RLS:** All work must enforce **factory scoping** via Postgres RLS; CEO/Director are global exceptions per PRD.  
-- **Context hygiene:** Prefer reading specific files or the prompt library index instead of pasting large code blobs into chat.
-- **Session continuity:** At session start, read `/docs/logs/SESSION_MEMORY.md` to understand recent multi-session work and maintain context across conversations.
+- **Context hygiene:** Prefer reading targeted files or the prompt library index instead of pasting large blobs into chat.
+
+### Terminal & Output Discipline (fix UI flicker)
+- Use **Filesystem/GitHub MCP** for edits and reviews; use **Bash** only for short, non-interactive commands.  
+- Any command that would print >200 lines **must** stream to a log and show only a short tail:
+  - Write to `docs/logs/terminal/<timestamp>.log`, then print the first ~200 lines with a link.  
+- Disable pagers/colors in Bash:  
+  `CI=1 GIT_PAGER=cat PAGER=cat GH_PAGER=cat FORCE_COLOR=0 <command>`  
+- For diffs: show `git diff --stat` / `--name-status`; save full patches to `docs/logs/patches/<timestamp>.patch`.  
+- Never run watchers/servers inside Claude’s Bash; output the command for me to run locally and then read/summary the produced log file.
+
+### 🔴 CRITICAL: Session Memory & Checklist Management (MANDATORY)
+
+**At session start (always):**
+1. Load the appropriate **agent** (from `/agents/`) for the task.
+2. Read `docs/logs/SESSION_MEMORY.md` (recent work).
+3. Read `docs/logs/SESSION_CHECKLIST.md` (current tasks).
+
+**Before ending every response (mandatory):**
+1. **Visual verification (Puppeteer MCP):** If UI changed, capture at least one screenshot per state (idle/focus/error). If it deviates from the plan or acceptance criteria, iterate and fix first. Attach file paths/links.  
+2. **Tests now, not later (TestSprite MCP):** Generate/update tests for each change and run them. Return a short pass/fail summary with artifact links. Keep the suite green (unit/integration/RLS/E2E as applicable).
+
+**After every response (mandatory):**
+1. Update **SESSION_CHECKLIST.md** (status, owner, PR links; add new tasks discovered).  
+2. Update **SESSION_MEMORY.md** (what changed this session, next steps).  
+3. Append a one-liner to `docs/logs/AGENT_EVENT_LOG.md` and a detailed entry in the relevant `docs/logs/agents/*.log.md`.
+
+**Auto-summarization rule (to prevent context bloat):**
+- If `SESSION_MEMORY.md` > **200 lines**, summarize older sessions into brief bullets and keep only the latest session in detail.  
+- If `SESSION_CHECKLIST.md` > **200 lines**, archive completed items to a summary section and keep only active items in the main list.
 
 ---
 
 ## 1) Agent Roles & Guardrails (Overview)
 
 For the **complete agent/sub-agent plan** — role scopes, allowed MCP tools, explicit prohibitions, and review/commit gates — **see**:  
-👉 **[`/AGENT.md`](./AGENT.md)**
+👉 **[`/AGENT.md`](./AGENT.md)** (index)  
+👉 **[`/CLAUDE/agents/`](./CLAUDE/agents/)** (actual agent configurations - **MUST BE USED**)
 
-> TL;DR:  
+> **CRITICAL:** Agent configurations in `/CLAUDE/agents/` are **MANDATORY** for all development tasks.  
 > - Roles: Architect, Backend, Frontend, QA, DevOps, Docs/PM.  
+> - Each agent in `/CLAUDE/agents/` contains system prompts, guardrails, and MCP permissions.
 > - **Prod DB is read-only** for all agents.  
 > - Any expansion of MCP permissions requires an ADR + approval.
+> - **NEVER proceed with development without loading the appropriate agent context first.**
 
 ---
 
@@ -145,29 +177,52 @@ Open the relevant file and execute in **plan mode**; **do not commit** until app
 4) **Open PR** with risks, rollback, and PRD references.  
 5) Await required **human approvals** before merging or deploying.
 
-## 10) Agent Event Logs (memory hygiene)
+## 10) MANDATORY Agent Usage Workflow
 
-Claude: at the **end of every session or PR**, append a concise entry to:
-- `/docs/logs/AGENT_EVENT_LOG.md` (index)
-- `/docs/logs/agents/<role>.log.md` (your role-specific log)
+**CRITICAL: This workflow is NOT optional. Failure to use agents is a violation of project standards.**
+
+### Agent Selection & Loading Process:
+1. **ALWAYS START** by identifying the task type (frontend, backend, architecture, QA, etc.)
+2. **LOAD THE AGENT** from `/CLAUDE/agents/<role>.md` matching your task
+3. **ADOPT THE SYSTEM PROMPT** from that agent configuration
+4. **FOLLOW THE GUARDRAILS** specified in the agent file
+5. **RESPECT MCP PERMISSIONS** defined for that agent
+
+### Why Agents Were Created:
+- **Separation of Concerns:** Each agent has specific permissions and cannot exceed their scope
+- **Security:** Prevents accidental modifications to critical areas (pricing, RLS, audit)
+- **Quality:** Each agent has specialized knowledge for their domain
+- **Compliance:** Ensures PRD requirements are met through role-specific constraints
+
+### Common Mistake to Avoid:
+**NEVER** work directly without an agent context. The `/CLAUDE/agents/` directory exists specifically to be used, not ignored. These are not optional guidelines—they are mandatory operating procedures.
+
+## 11) Agent Event Logs (memory hygiene)
+
+Claude: **After EVERY prompt response**, you MUST:
+1. **Update SESSION_CHECKLIST.md** - Mark completed tasks, add new ones
+2. **Update SESSION_MEMORY.md** - Add what was accomplished this response
+3. At **session end**, also update:
+   - `/docs/logs/AGENT_EVENT_LOG.md` (index)
+   - `/docs/logs/agents/<role>.log.md` (your role-specific log)
 
 **Entry template:** use `/docs/logs/TEMPLATE_EVENT_ENTRY.md`. Keep 10–15 lines max; link the PR/commit and the playbooks used.
 
-## 11) Session Checklist / Task Board
+## 12) Session Checklist / Task Board
 
 Single source of progress truth: `/docs/logs/SESSION_CHECKLIST.md`.
 
 Claude: at session start, **read** it; at session end, **update**:
 - Move items across **Todo → In Progress → Done/Blocked**.
-- For each “Done”, link the PR and the log entry ID.
+- For each "Done", link the PR and the log entry ID.
 - If you start new work, create a checklist item first.
 
-## 12) PRD Location
+## 13) PRD Location
 
 The current Product Requirements Document is here: `docs/PRD/PRD-v1.5.md`.  
 Treat this file as the **single source of truth** for domain rules, workflows, roles, Pakistan regulatory controls, Supabase platform choices, realtime/cache policy, RLS, and acceptance tests.
 
-## 13) Code Modularity & Size Limits
+## 14) Code Modularity & Size Limits
 
 **Goal:** keep files small and maintainable.
 

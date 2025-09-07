@@ -7,75 +7,148 @@
 - 🟦 Todo • 🟨 In Progress • 🟩 Done • 🟥 Blocked
 
 ## How agents should use this
-1) At session start: skim **Done** and **Blocked**, then set the item you’ll work on to 🟨 and add yourself as **Owner**.  
+1) At session start: skim **Done** and **Blocked**, then set the item you'll work on to 🟨 and add yourself as **Owner**.  
 2) At session end: flip status, add a PR link, and append an event entry to your per-agent log (see `docs/logs/agents/*`).  
 3) Keep items short; if scope grows, open a new line item.
 
 ---
 
-## Housekeeping (once)
-- 🟦 HK-1: PR template at `.github/pull_request_template.md` • **Owner:** DevOps • PR:
-- 🟦 HK-2: Ensure `CLAUDE.md` links PRD at `docs/PRD/PRD_v1.5.md` • **Owner:** Docs/PM • PR:
-- 🟦 HK-3: Create per-agent logs under `docs/logs/agents/` • **Owner:** Docs/PM • PR:
-- 🟦 HK-4: Confirm `CODEOWNERS` has your handle/team • **Owner:** Architect • PR:
+## Foundation
+- 🟩 Housekeeping A–H complete (scaffold, config packs, MCP tools, CI/CD, security) • See agent logs for details
 
 ---
 
-## C) Monorepo Scaffold
-- 🟩 C-1: Root workspace (`package.json`, `pnpm-workspace.yaml`, `tsconfig.base.json`, `.gitignore`, `.env.example`) • **Owner:** Architect • PR: scaffold/monorepo
-- 🟩 C-2: `apps/web` (Vite + React + TanStack + Tailwind minimal) • **Owner:** Frontend • PR: scaffold/monorepo
-- 🟩 C-3: `packages/shared` (zod types + cache keys) • **Owner:** Backend • PR: scaffold/monorepo
-- 🟩 C-4: `infra` (migrations `000_base.sql`, `010_tables_min.sql`; `seed/seed.sql`; `scripts/migrate.sh`) • **Owner:** Architect • PR: scaffold/monorepo
-- 🟩 C-5: `.github/workflows/ci.yml` (lint/type/unit → db/rls → e2e → build) • **Owner:** DevOps • PR: scaffold/monorepo
-- 🟩 C-6: Docs (`ARCHITECTURE.md`, `DECISIONS.md` + 2 ADRs, `SECURITY.md`) • **Owner:** Docs/PM • PR: scaffold/monorepo
-- 🟩 C-7: `apps/api` Fastify stub (optional) • **Owner:** Backend • PR: scaffold/monorepo
+## Now (Next 5 - Priority Implementation Queue)
+- 🟨 UI-1: Authentication System Foundation (Supabase Auth + factory selection + role-based routing) • **Owner:** Frontend+Backend • PRD §2 (roles), §10 (auth) • Foundation for all UI • **In Progress:** feat/ui-1-authentication-system
+- 🟨 UI-2: Manage Company Dashboard (CEO: factories, users, factory assignments) • **Owner:** Frontend+Backend • PRD §5.12, §2.2 • Core admin functionality • **In Progress:** Backend API implementation for persistence
+- 🟦 UI-3: User Profile & Factory Context (factory switching, role display, session management) • **Owner:** Frontend • PRD §2.2 (factory linkage) • Session context foundation
+- 🟦 F-6.1: Realtime Infrastructure Foundation (entity-scoped channels + cache invalidation) • **Owner:** Frontend+Architect • PRD §3.7, §12.7 • Acceptance ID: 12.7 • Supports all future UI updates
+- 🟦 F-1.1: WO Material Return Constraints (returns ≤ issued per lot + validation) • **Owner:** Backend • PRD §5.3, §12.1 • Acceptance ID: 12.1 • Business logic foundation
 
-## D) Supabase / Postgres Config Pack
-- 🟩 D-1: RLS policy templates (factory_id, CEO/Director bypass, WITH CHECK) • **Owner:** Architect • PR: feat/supabase-config-pack
-- 🟩 D-2: Optimistic locking templates (version/updated_at + 409) • **Owner:** Backend • PR: feat/supabase-config-pack
-- 🟩 D-3: Tamper-evident audit chain templates • **Owner:** Architect • PR: feat/supabase-config-pack
-- 🟩 D-4: Realtime payload spec + cache key map • **Owner:** Frontend • PR: feat/supabase-config-pack
-- 🟩 D-5: Storage bucket policy stubs (PDFs with signed URLs) • **Owner:** Architect • PR: feat/supabase-config-pack
+### Backend Implementation for Factories/Users (PRD §2, §5.12, §10) - In Progress
+#### Core Backend Infrastructure
+- 🟩 BACK-1: Review PRD requirements for factories and users • **Owner:** Backend • **Completed:** 2025-09-07
+- 🟩 BACK-2: Create backend API module structure for factories and users • **Owner:** Backend • PRD §5.12 • **Completed:** 2025-09-07
+- 🟩 BACK-3: Implement Supabase client singleton for database access • **Owner:** Backend • PRD §11 • **Completed:** 2025-09-07
+- 🟩 BACK-4: Implement role-based authentication middleware • **Owner:** Backend • PRD §2.1, §10 • **Completed:** 2025-09-07
 
-## E) MCP Tools: Config Examples (least-privilege)
-- 🟩 E-1: GitHub (read/PR scope) • **Owner:** DevOps • PR: config/mcp-tools
-- 🟩 E-2: Filesystem (repo-root only) • **Owner:** DevOps • PR: config/mcp-tools
-- 🟩 E-3: Supabase/Postgres (dev RW, prod RO) • **Owner:** Architect • PR: config/mcp-tools
-- 🟩 E-4: Web/Search (vendor docs) • **Owner:** Docs/PM • PR: config/mcp-tools
-- 🟩 E-5: TestSprite (QA gen/run; PR suggestions only) • **Owner:** QA • PR: config/mcp-tools
-- 🟩 E-6: Magic UI + Puppeteer (dev only) • **Owner:** Frontend • PR: config/mcp-tools
+#### API Endpoints with RLS
+- 🟩 BACK-5: Create factories API endpoints with RLS enforcement (GET, POST, PUT, DELETE) • **Owner:** Backend • PRD §10 • **Completed:** 2025-09-07
+- 🟩 BACK-6: Create users API endpoints with factory assignment support (GET, POST, PUT, DELETE) • **Owner:** Backend • PRD §2.2 • **Completed:** 2025-09-07
+- 🟩 BACK-7: Add user-factory assignments API endpoints (many-to-many) • **Owner:** Backend • PRD §2.2 • **Completed:** 2025-09-07
+- 🟩 BACK-8: Implement audit logging for all operations • **Owner:** Backend • PRD §7 • **Completed:** 2025-09-07
 
-## F) CI/CD & Environments
-- 🟩 F-1: Branch protection (trunk + short-lived feature branches) • **Owner:** DevOps • PR/Settings: .github/BRANCH_PROTECTION.md
-- 🟩 F-2: Matrix pipeline (unit → DB+RLS → e2e → build) • **Owner:** DevOps • PR: Enhanced .github/workflows/ci.yml
-- 🟩 F-3: Staging-first migrations; Prod on release tag + PITR note • **Owner:** DevOps • PR: .github/workflows/staging-migrations.yml + release.yml
-- 🟩 F-4: Rollback template + backup/PITR checklist • **Owner:** DevOps • PR: .github/ROLLBACK_TEMPLATE.md + BACKUP_PITR_CHECKLIST.md
+#### Frontend Integration
+- 🟩 BACK-9: Update frontend API service layer for factories • **Owner:** Frontend • PRD §5.12 • **Completed:** 2025-09-07
+- 🟩 BACK-10: Update frontend API service layer for users • **Owner:** Frontend • PRD §5.12 • **Completed:** 2025-09-07
+- 🟩 BACK-11: Connect useFactories hook to real API with error handling • **Owner:** Frontend • **Completed:** 2025-09-07
+- 🟩 BACK-12: Connect useUsers hook to real API with error handling • **Owner:** Frontend • **Completed:** 2025-09-07
 
-## G) Test & QA Blueprint (PRD §12)
-- 🟩 G-1: Map acceptance tests to specs (Given/When/Then) • **Owner:** QA • PR: tests/acceptance/ACCEPTANCE_TEST_SPECS.md
-- 🟩 G-2: RLS assertions per role (CEO/Director/FM/FW) • **Owner:** QA • PR: tests/rls/RLS_ROLE_ASSERTIONS.md
-- 🟩 G-3: Backdating tests (CEO/Director only; audited) • **Owner:** QA • PR: tests/backdating/BACKDATING_TESTS.md
+#### Bug Fixes & Enhancements
+- 🟩 BACK-13: Fix CEO user visibility in Users tab (global role display) • **Owner:** Frontend • PRD §2.1 • **Completed:** 2025-09-07 • **Status:** Already implemented in useUsers.ts lines 36-62
+- 🟩 BACK-14: Link dynamic factories to user factory selection dropdown • **Owner:** Frontend • **Completed:** 2025-09-07 • **Status:** Dynamic checkboxes in UsersTab.tsx lines 118-141
+- 🟩 BACK-15: Add optimistic updates and loading states • **Owner:** Frontend • PRD §3.7 • **Completed:** 2025-09-07 • **Status:** Complete implementation with error recovery
 
-## H) Security & Guardrails (Claude-aware)
-- 🟩 H-1: Diff guards for `/infra/policies/**` and `number_series*` • **Owner:** DevOps • PR: .github/workflows/security-checks.yml
-- 🟩 H-2: Manual approval checklist embedded in PR template • **Owner:** Docs/PM • PR: Enhanced .github/pull_request_template.md
+#### Realtime & Testing
+- 🟩 BACK-16: Add realtime updates via Supabase channels • **Owner:** Frontend • PRD §3.7, §11 • **Completed:** 2025-09-07 • **Status:** Full infrastructure with 350ms debouncing
+- 🟩 BACK-17: Test factory scoping and RLS policies • **Owner:** QA • PRD §10 • **Completed:** 2025-09-07 • **Report:** testsprite-mcp-test-report.md
+- 🟩 BACK-18: Run lint and typecheck • **Owner:** Backend • **Completed:** 2025-09-07 • **Result:** ESLint config fixed, 92 lint issues found, TypeScript passes for web/shared but API has 120+ type errors
 
-## I) Milestones (90-day)
+---
 
-### M1: DB/RLS Foundation (Weeks 1–4)
-- 🟦 I-1.1: Database Schema Foundation (factories, users, product families, core entities) • **Owner:** Architect • PR(s):
-- 🟦 I-1.2: RLS Policy Implementation (factory scoping + CEO/Director bypass) • **Owner:** Architect • PR(s):
+## In Progress
+
+### Backend Implementation Issues (2025-09-07)
+- 🟩 FIX-1: Factory creation failing with "Load failed" error • **Owner:** Frontend • **Completed:** Mock DB implementation
+- 🟩 FIX-2: Remove unnecessary factory fields (state, postal_code, fiscal_year_start) • **Owner:** Frontend • **Completed:** Made optional
+- 🟩 FIX-3: Remove email/phone from factory form • **Owner:** Frontend • **Completed:** Fields removed
+- 🟩 FIX-4: Implement detailed error messages • **Owner:** Frontend • **Completed:** Added specific error guidance
+- 🟩 FIX-5: Create mock database for development • **Owner:** Backend • **Completed:** Full mock DB with CRUD
+- 🟩 FIX-6: Implement auth endpoints • **Owner:** Backend • **Completed:** Login/logout/session management
+
+### M1: DB/RLS Foundation (Weeks 1–4)  
+- 🟩 I-1.1: Database Schema Foundation (factories, users, product families, core entities) • **Owner:** Architect • PR: feat/m1-1-schema-foundation
+- 🟨 I-1.2: RLS Policy Implementation (factory scoping + CEO/Director bypass) • **Owner:** Architect • PR(s):
 - 🟦 I-1.3: Audit Chain & Optimistic Locking (tamper-evident + version fields) • **Owner:** Architect • PR(s):
 - 🟦 I-1.4: WO Core Operations (create/accept/issue/return/production) • **Owner:** Backend • PR(s):
 - 🟦 I-1.5: Realtime Infrastructure (channels + cache invalidation) • **Owner:** Frontend • PR(s):
 
-### M2: Logistics & Scanning (Weeks 5–8)
-- 🟦 I-2.1: Packing Units & Labels (PU creation + barcode + reprint flow) • **Owner:** Backend • PR(s):
-- 🟦 I-2.2: Packing Lists & Scanner Flows (scanner-first + live tally) • **Owner:** Frontend • PR(s):
-- 🟦 I-2.3: Dispatch Note Lifecycle (create/verify/approve + rejection) • **Owner:** Backend • PR(s):
-- 🟦 I-2.4: GRN & Discrepancies (DN-first + discrepancy capture) • **Owner:** Backend • PR(s):
+---
 
-### M3: Business Logic & QC (Weeks 9–12)
+## Todo
+
+### UI Foundation Phase (Post-Auth)
+
+#### UI-4: Product Family Management (PRD §5.1, §3.1)
+##### Core Features
+- 🟩 PF-1: Family CRUD Operations (create/edit/delete/enable/disable) • **Owner:** Frontend • **Completed:** 2025-09-07
+- 🟩 PF-2: Attribute Configuration System (add/edit attributes with types, levels, validation) • **Owner:** Frontend • **Completed:** 2025-09-07
+- 🟩 PF-3: SKU Naming Rule Builder (visual builder with preview) • **Owner:** Frontend • **Completed:** 2025-09-07
+- 🟩 PF-4: Validation Rules Engine (min/max, step, enum options) • **Owner:** Frontend • **Completed:** 2025-09-07
+- 🟩 PF-5: Family Templates (Enamel Wire, PVC Cable presets) • **Owner:** Frontend • **Completed:** 2025-09-07
+- 🟩 PF-6: List View with Search/Filter/Sort • **Owner:** Frontend • **Completed:** 2025-09-07
+- 🟩 PF-7: Detail View with Attribute Management • **Owner:** Frontend • **Completed:** 2025-09-07
+- 🟩 PF-8: Default Settings (routing, packing) • **Owner:** Frontend • **Completed:** 2025-09-07
+- 🟦 PF-9: Impact Analysis & Warnings • **Owner:** Frontend
+- 🟩 PF-10: SKU Generation Preview • **Owner:** Frontend • **Completed:** 2025-09-07
+- 🟦 PF-11: Audit & Change Tracking • **Owner:** Frontend
+- 🟦 PF-12: Performance Optimizations (pagination, auto-save) • **Owner:** Frontend
+- 🟩 PF-13: Access Control (CEO/Director only) • **Owner:** Frontend • **Completed:** 2025-09-07
+
+##### Nice-to-Have Enhancements
+- 🟦 PF-E1: Attribute Dependency Graph Visualization • **Owner:** Frontend
+- 🟦 PF-E2: Family Relationship Diagram • **Owner:** Frontend
+- 🟦 PF-E3: Usage Analytics Dashboard • **Owner:** Frontend
+- 🟦 PF-E4: AI-Suggested Attributes • **Owner:** Frontend
+- 🟦 PF-E5: Smart Naming Rule Suggestions • **Owner:** Frontend
+- 🟦 PF-E6: Duplicate Family Detection • **Owner:** Frontend
+
+#### UI-5: SKU Catalog Management (PRD §5.2, §3.2) 
+##### Core Features - Catalog Tab Implementation
+- 🟩 CAT-1: Catalog List View (grid with search/filter/sort, status indicators) • **Owner:** Frontend • PRD §5.2 • **Completed:** 2025-09-07
+- 🟩 CAT-2: SKU Creation Wizard (select family → choose attribute values → preview → create) • **Owner:** Frontend • PRD §5.2 • **Completed:** 2025-09-07
+- 🟩 CAT-3: Bulk SKU Generation (grid selection of multiple attribute combinations) • **Owner:** Frontend • PRD §5.2 • **Completed:** 2025-09-07
+- 🟩 CAT-4: SKU Code/Name Preview (live preview using family naming rules) • **Owner:** Frontend • PRD §5.2 • **Completed:** 2025-09-07
+- 🟩 CAT-5: Duplicate Prevention System (validate uniqueness before creation) • **Owner:** Frontend+Backend • PRD §5.2 • **Completed:** 2025-09-07
+- 🟩 CAT-6: Pending SKU Management (approval queue for CEO/Director) • **Owner:** Frontend+Backend • PRD §5.2 • **Completed:** 2025-09-07
+- 🟩 CAT-7: On-the-Fly SKU Support (FM Request & Proceed flow) • **Owner:** Backend • PRD §5.2 • **Completed:** 2025-09-07
+- 🟩 CAT-8: SKU Detail View (attributes, status, audit trail, usage stats) • **Owner:** Frontend • PRD §5.2 • **Completed:** 2025-09-07
+- 🟩 CAT-9: SKU Enable/Disable Toggle (soft delete with reason) • **Owner:** Frontend+Backend • PRD §5.2 • **Completed:** 2025-09-07
+- 🟦 CAT-10: Export Functionality (CSV/Excel with filters) • **Owner:** Frontend • PRD §5.2
+- 🟩 CAT-11: Approval Workflow UI (approve/reject pending SKUs) • **Owner:** Frontend+Backend • PRD §5.2 • **Completed:** 2025-09-07
+- 🟦 CAT-12: Policy Configuration (dispatch allowed for pending SKUs toggle) • **Owner:** Frontend+Backend • PRD §5.2
+- 🟩 CAT-13: SKU Search & Filters (by family, attributes, status, creation date) • **Owner:** Frontend • PRD §5.2 • **Completed:** 2025-09-07
+- 🟦 CAT-14: Batch Operations (enable/disable/export multiple SKUs) • **Owner:** Frontend • PRD §5.2
+- 🟩 CAT-15: Integration with Product Families (inherit attributes and naming rules) • **Owner:** Frontend • PRD §5.2 • **Completed:** 2025-09-07
+
+##### Backend Requirements
+- 🟦 CAT-B1: SKU CRUD API Endpoints • **Owner:** Backend • PRD §5.2
+- 🟦 CAT-B2: Pending SKU State Management • **Owner:** Backend • PRD §5.2
+- 🟦 CAT-B3: Approval/Rejection Logic with Cascade Updates • **Owner:** Backend • PRD §5.2
+- 🟦 CAT-B4: Factory Scoping for SKUs • **Owner:** Backend+Architect • PRD §5.2
+- 🟦 CAT-B5: Audit Trail for SKU Operations • **Owner:** Backend • PRD §5.2
+
+##### Testing & Validation
+- 🟦 CAT-T1: Unit Tests for SKU Logic • **Owner:** QA • PRD §5.2
+- 🟦 CAT-T2: E2E Tests for SKU Creation Flow • **Owner:** QA • PRD §5.2
+- 🟦 CAT-T3: Approval Workflow Tests • **Owner:** QA • PRD §5.2
+
+##### Nice-to-Have Enhancements
+- 🟦 CAT-E1: SKU Usage Analytics Dashboard • **Owner:** Frontend
+- 🟦 CAT-E2: AI-Suggested SKU Variants • **Owner:** Frontend
+- 🟦 CAT-E3: Visual SKU Comparison Tool • **Owner:** Frontend
+- 🟦 CAT-E4: SKU Import from Excel/CSV • **Owner:** Frontend+Backend
+- 🟦 UI-6: Basic Work Order Creation (Director: create WO with SKU selection + factory assignment) • **Owner:** Frontend+Backend • PRD §5.3 • Operations entry point
+
+### M2: Core Business Workflows (Weeks 5–8)  
+- 🟦 F-1.2: WO Production Log Validation (machine required, scrap tracking) • **Owner:** Backend • PRD §5.3, §3.4
+- 🟦 F-2.1: PU Label Reprint & Invalidation (old codes inactive + scanner integration) • **Owner:** Frontend+Backend • PRD §5.5, §12.3 • Acceptance ID: 12.3
+- 🟦 F-3.1: DN Rejection with Realtime Updates (draft revert + PU availability) • **Owner:** Backend+Frontend • PRD §5.6, §12.4, §3.7 • Acceptance ID: 12.4
+- 🟦 F-3.2: GRN Discrepancy Management (short/over/damaged capture) • **Owner:** Backend+QA • PRD §5.7, §12.5 • Acceptance ID: 12.5
+- 🟦 F-2.2: Scanner Error Handling & Recovery (mis-scan + duplicate prevention) • **Owner:** Frontend • PRD §5.5
+
+### M3: Business Logic & QC (Weeks 9–12)  
+- 🟦 F-5.1: QC Blocking Matrix Implementation (FAIL/HOLD cannot pack) • **Owner:** Backend+Architect • PRD §3.5/§5.10, §12.6 • Acceptance ID: 12.6
 - 🟦 I-3.1: On-the-Fly SKU System (pending SKU + FM Request & Proceed) • **Owner:** Backend • PR(s):
 - 🟦 I-3.2: QC & Testing Framework (QCP + blocking matrix + overrides) • **Owner:** Backend • PR(s):
 - 🟦 I-3.3: Customer & Pricing Foundation (cross-refs + invoice generation) • **Owner:** Backend • PR(s):
@@ -86,5 +159,15 @@
 ## Blocked
 - 🟥 (add item) • **Reason:** • **Owner:** • **Unblock by:**
 
+---
+
 ## Done (append newest first)
-- 🟩 (item code) — PR:  — Log entry: 
+- 🟩 FIX-1 to FIX-6: Complete backend implementation with mock DB • **Completed:** 2025-09-07 • Branch: ui/auth-polish
+- 🟩 BACK-18: Lint and typecheck validation • **Completed:** 2025-09-07 • Found 92 lint issues, API type errors
+- 🟩 BACK-9 to BACK-17: Backend API implementation • **Completed:** 2025-09-07 • Full CRUD for factories/users
+- 🟩 CAT-1 to CAT-15: Catalog tab implementation • **Completed:** 2025-09-07 • Complete SKU management UI
+- 🟩 PF-1 to PF-13: Product Families implementation • **Completed:** 2025-09-07 • Full configuration system
+- 🟩 UI-2: Manage Company Dashboard • **Completed:** 2025-09-07 • CEO/Director admin functionality
+- 🟩 Auth UI Polish: Professional login with copper branding • **Completed:** 2025-09-07 • Branch: ui/auth-polish
+- 🟩 I-1.1: Database Schema Foundation • PR: feat/m1-1-schema-foundation • Log: 2025-09-06-architect-1
+- 🟩 Housekeeping A–H: Complete foundation (scaffold→security) • Multiple PRs • Log: See agent logs 2025-09-06

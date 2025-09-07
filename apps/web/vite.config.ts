@@ -2,7 +2,9 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react({
+    jsxRuntime: 'automatic'
+  })],
   resolve: {
     alias: {
       '@': '/src',
@@ -12,7 +14,7 @@ export default defineConfig({
     global: 'globalThis',
   },
   server: {
-    port: 3000,
+    port: 3003,
   },
   build: {
     outDir: 'dist',

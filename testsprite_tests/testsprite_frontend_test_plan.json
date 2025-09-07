@@ -1,0 +1,542 @@
+[
+  {
+    "id": "TC001",
+    "title": "CEO Login Success",
+    "description": "Verify CEO can log in successfully with valid credentials and access global management features.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to the login page."
+      },
+      {
+        "type": "action",
+        "description": "Enter valid CEO username and password."
+      },
+      {
+        "type": "action",
+        "description": "Click the login button."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify login is successful and dashboard displays CEO global controls."
+      }
+    ]
+  },
+  {
+    "id": "TC002",
+    "title": "Factory-Scoped User Login",
+    "description": "Check that a factory-scoped user can log in and access only assigned factory data.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to the login page."
+      },
+      {
+        "type": "action",
+        "description": "Enter valid factory user credentials."
+      },
+      {
+        "type": "action",
+        "description": "Click login button."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify user dashboard loads with data limited to assigned factories only."
+      }
+    ]
+  },
+  {
+    "id": "TC003",
+    "title": "Login Failure on Invalid Credentials",
+    "description": "Ensure the system rejects login attempts with incorrect username or password.",
+    "category": "error handling",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to login page."
+      },
+      {
+        "type": "action",
+        "description": "Enter invalid username or password."
+      },
+      {
+        "type": "action",
+        "description": "Click login button."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify login is rejected with appropriate error message displayed."
+      }
+    ]
+  },
+  {
+    "id": "TC004",
+    "title": "Create Factory from CEO Dashboard",
+    "description": "CEO should be able to create a new factory with valid address and activation settings.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as CEO and navigate to Manage Company Dashboard."
+      },
+      {
+        "type": "action",
+        "description": "Open Factories tab."
+      },
+      {
+        "type": "action",
+        "description": "Click 'Create New Factory' button."
+      },
+      {
+        "type": "action",
+        "description": "Fill factory form with valid name, address, and activation status."
+      },
+      {
+        "type": "action",
+        "description": "Submit the form."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify new factory appears in the factory list with correct details."
+      }
+    ]
+  },
+  {
+    "id": "TC005",
+    "title": "Factory CRUD Operations with RLS Enforcement",
+    "description": "Test factory creation, update, and deletion with role-based and row-level security enforcement.",
+    "category": "security",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as factory manager assigned to Factory A."
+      },
+      {
+        "type": "action",
+        "description": "Attempt to update Factory B details."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify update is denied due to factory scoping policies."
+      },
+      {
+        "type": "action",
+        "description": "Create a new factory record if allowed."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify creation succeeds or fails according to role permissions."
+      }
+    ]
+  },
+  {
+    "id": "TC006",
+    "title": "User CRUD and Factory Assignment",
+    "description": "Verify user creation, update, deletion, and dynamic assignment to one or more factories with optimistic UI updates.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as CEO and open Manage Company Dashboard."
+      },
+      {
+        "type": "action",
+        "description": "Navigate to Users tab."
+      },
+      {
+        "type": "action",
+        "description": "Create a new user with assigned factories."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify user appears in the list with correct factory assignments."
+      },
+      {
+        "type": "action",
+        "description": "Update user details and factory assignments."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify UI updates optimistically and backend synchronizes changes correctly."
+      },
+      {
+        "type": "action",
+        "description": "Delete the user."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify user is removed from the list and appropriate audit logs are generated."
+      }
+    ]
+  },
+  {
+    "id": "TC007",
+    "title": "Prevent Duplicate SKU Creation",
+    "description": "SKU creation must validate uniqueness with naming rules enforced; duplicate SKUs should be rejected.",
+    "category": "validation",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as CEO or director and navigate to SKU Catalog."
+      },
+      {
+        "type": "action",
+        "description": "Attempt creating an SKU with an existing SKU identifier."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify system rejects SKU creation with meaningful error about duplication."
+      }
+    ]
+  },
+  {
+    "id": "TC008",
+    "title": "On-the-Fly SKU Creation Requires CEO Approval",
+    "description": "Check that SKUs created dynamically during finished goods receipt generate pending approval status and require CEO approval.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as factory manager and create FG receipt with a new SKU not in catalog."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify SKU enters pending approval workflow."
+      },
+      {
+        "type": "action",
+        "description": "Login as CEO and review pending SKUs."
+      },
+      {
+        "type": "action",
+        "description": "Approve the pending SKU."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify SKU status updates to approved and usable for further operations."
+      }
+    ]
+  },
+  {
+    "id": "TC009",
+    "title": "Work Order Lifecycle: Raw Material Issue and Return Validation",
+    "description": "Verify raw material issue does not allow returns exceeding issued quantities per lot with user hints on validation errors.",
+    "category": "validation",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as factory manager and select a work order."
+      },
+      {
+        "type": "action",
+        "description": "Issue raw materials from a lot."
+      },
+      {
+        "type": "action",
+        "description": "Attempt to return more material than issued from the same lot."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify validation error displayed preventing excess return and user hint is shown."
+      }
+    ]
+  },
+  {
+    "id": "TC010",
+    "title": "Packing Units Creation and Barcode Scanning",
+    "description": "Factory worker creates packing units using barcode scanning, builds packing lists, and drafts dispatch notes.",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as factory worker."
+      },
+      {
+        "type": "action",
+        "description": "Scan barcodes to create packing units."
+      },
+      {
+        "type": "action",
+        "description": "Add packing units to a packing list."
+      },
+      {
+        "type": "action",
+        "description": "Draft dispatch note from packing list."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify packing units and lists are correctly created and dispatch note reflects current status."
+      }
+    ]
+  },
+  {
+    "id": "TC011",
+    "title": "Reject Dispatch Note and Return PUs to Available Status",
+    "description": "Verify that rejecting a dispatch note updates packing unit statuses to available and logs rejection reason with realtime UI updates.",
+    "category": "error handling",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as CEO or Director and review a dispatched note."
+      },
+      {
+        "type": "action",
+        "description": "Reject the dispatch note providing a reason."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify packing units tied to the dispatch note revert to available status."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify rejection reason is logged and UI updates in realtime for all logged-in users."
+      }
+    ]
+  },
+  {
+    "id": "TC012",
+    "title": "GRN Creation with Discrepancy Capture and Approval",
+    "description": "Test GRN creation scanning dispatch notes or packing lists, discrepancy record creation with statuses, and requiring approval before posting.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as factory manager and create GRN by scanning a dispatch note."
+      },
+      {
+        "type": "action",
+        "description": "Record a quantity discrepancy during GRN entry."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify discrepancy record is created with 'Pending Approval' status."
+      },
+      {
+        "type": "action",
+        "description": "Attempt to post invoice while discrepancy is unapproved."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify posting is blocked until discrepancies are approved."
+      }
+    ]
+  },
+  {
+    "id": "TC013",
+    "title": "Invoice Posting Validation with Customer SKU Cross-Reference",
+    "description": "Ensure invoice posting is blocked if customer SKU mapping is missing, SKU is pending approval, or QC status is HOLD or FAIL.",
+    "category": "validation",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Create an invoice referencing SKU missing customer SKU cross-reference."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify invoice posting is blocked with relevant error message."
+      },
+      {
+        "type": "action",
+        "description": "Create an invoice with SKU pending approval."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify posting is blocked."
+      },
+      {
+        "type": "action",
+        "description": "Create an invoice with SKU shipment blocked by QC HOLD or FAIL status."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify invoice posting is blocked due to QC restriction."
+      }
+    ]
+  },
+  {
+    "id": "TC014",
+    "title": "Quality Control Process Enforcement",
+    "description": "Check that configurable QCP testing blocks shipments if test results are FAIL or HOLD, with override option only for CEO and audit logging.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Perform QCP testing on a batch resulting in FAIL."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify shipment is blocked by system."
+      },
+      {
+        "type": "action",
+        "description": "Login as CEO and override shipment block."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify shipment allowed and override action is logged in audit trail."
+      }
+    ]
+  },
+  {
+    "id": "TC015",
+    "title": "Audit Log Tamper-Evident Chain Verification",
+    "description": "Ensure all CRUD and override actions generate audit logs that form a tamper-evident SHA-256 linked chain, validated successfully.",
+    "category": "security",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Perform create, update, delete, and override operations on key entities."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify that audit logs are created for each action."
+      },
+      {
+        "type": "action",
+        "description": "Retrieve audit log chain from API."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify SHA-256 chain linking integrity and that no tampering is detected."
+      }
+    ]
+  },
+  {
+    "id": "TC016",
+    "title": "Realtime UI Update on Concurrent Edits and Approvals",
+    "description": "Test that realtime updates notify users about concurrent edits, approvals, and status changes with scoped subscriptions and proper debounce.",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as multiple users scoped to same factory."
+      },
+      {
+        "type": "action",
+        "description": "Make a change (e.g., approve SKU or update work order status) from one user."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify other users receive realtime UI updates reflecting the change within expected debounce windows."
+      }
+    ]
+  },
+  {
+    "id": "TC017",
+    "title": "Optimistic UI Updates with Backend Synchronization",
+    "description": "Verify that user management and factory management changes reflect immediately in UI optimistically and confirm actual backend data consistency after synchronization.",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Make user or factory edits in the UI."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify UI reflects changes immediately."
+      },
+      {
+        "type": "action",
+        "description": "Simulate backend success or failure."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify UI adjusts accordingly and data remains consistent with backend."
+      }
+    ]
+  },
+  {
+    "id": "TC018",
+    "title": "Bulk SKU Variant Generation",
+    "description": "Test bulk variant generation feature creates all expected SKUs following naming rules and validation without duplicates.",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to SKU Catalog and open Bulk Generation modal."
+      },
+      {
+        "type": "action",
+        "description": "Input valid variant attributes and initiate bulk generation."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify all generated SKUs conform to naming rules and none are duplicates."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify bulk operation summary is shown after completion."
+      }
+    ]
+  },
+  {
+    "id": "TC019",
+    "title": "Packing List Rejection Blocking QC-Blocked Lots",
+    "description": "Verify packing lists reject adding packaging units which are QC-blocked unless overridden by CEO with auditing.",
+    "category": "validation",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Attempt to add packing units with QC-blocked lots into a packing list."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify rejection of the addition with validation error."
+      },
+      {
+        "type": "action",
+        "description": "Login as CEO and override QC block."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify addition allowed and override logged in audit system."
+      }
+    ]
+  },
+  {
+    "id": "TC020",
+    "title": "Multicurrency and GST-Ready Invoice Posting",
+    "description": "Ensure invoice posting handles multi-currency conversion correctly and includes GST-compliant fiscal controls in Pakistan locale.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Create invoice with SKU mapped to customer and specify currency different from base currency."
+      },
+      {
+        "type": "action",
+        "description": "Complete invoice entry and submit for posting."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify currency conversion is applied correctly."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify invoice includes GST fiscal elements and is compliant with Pakistan fiscal requirements."
+      }
+    ]
+  }
+]
