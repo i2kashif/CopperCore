@@ -9,13 +9,41 @@ Default to **least privilege**, **plan → code → test** loops, and **reviewed
 
 ## 0) Ground Rules (Read Me First)
 
-- **Authority order:** (1) PRD-v1.5.md (supreme), (2) this `CLAUDE.md`, (3) repo docs/ADRs, (4) code comments.  
-- **CRITICAL: AGENT USAGE IS MANDATORY** - You MUST use the agent configurations in `/CLAUDE/agents/` for ALL development work. Each agent has specific roles, permissions, and guardrails. **NEVER skip agent setup or work without the appropriate agent context. The agents must be loaded and used for every task.**
+- **Authority order:** (1) `docs/PRD/PRD_v1.5.md` (supreme), (2) this `CLAUDE.md`, (3) repo docs/ADRs, (4) code comments.  
+- **CRITICAL — Agent usage is mandatory:** Use the agent configs in **`/agents/`** for *all* work. Pick the correct role, respect its guardrails and MCP scopes. Never work outside an agent context.  
 - **Safety:** Do **not** use `--dangerously-skip-permissions`. Always request permission for file writes, shell commands, or MCP tools.  
 - **Separation of concerns:** Do **not** alter **pricing**, **numbering/series**, **RLS/policies**, **audit/backdating**, or **QC override semantics** without explicit approval (see §2.2 and §7).  
 - **Factories & RLS:** All work must enforce **factory scoping** via Postgres RLS; CEO/Director are global exceptions per PRD.  
-- **Context hygiene:** Prefer reading specific files or the prompt library index instead of pasting large code blobs into chat.
-- **Session continuity:** At session start, read `/docs/logs/SESSION_MEMORY.md` to understand recent multi-session work and maintain context across conversations.
+- **Context hygiene:** Prefer reading targeted files or the prompt library index instead of pasting large blobs into chat.
+
+### Terminal & Output Discipline (fix UI flicker)
+- Use **Filesystem/GitHub MCP** for edits and reviews; use **Bash** only for short, non-interactive commands.  
+- Any command that would print >200 lines **must** stream to a log and show only a short tail:
+  - Write to `docs/logs/terminal/<timestamp>.log`, then print the first ~200 lines with a link.  
+- Disable pagers/colors in Bash:  
+  `CI=1 GIT_PAGER=cat PAGER=cat GH_PAGER=cat FORCE_COLOR=0 <command>`  
+- For diffs: show `git diff --stat` / `--name-status`; save full patches to `docs/logs/patches/<timestamp>.patch`.  
+- Never run watchers/servers inside Claude’s Bash; output the command for me to run locally and then read/summary the produced log file.
+
+### 🔴 CRITICAL: Session Memory & Checklist Management (MANDATORY)
+
+**At session start (always):**
+1. Load the appropriate **agent** (from `/agents/`) for the task.
+2. Read `docs/logs/SESSION_MEMORY.md` (recent work).
+3. Read `docs/logs/SESSION_CHECKLIST.md` (current tasks).
+
+**Before ending every response (mandatory):**
+1. **Visual verification (Puppeteer MCP):** If UI changed, capture at least one screenshot per state (idle/focus/error). If it deviates from the plan or acceptance criteria, iterate and fix first. Attach file paths/links.  
+2. **Tests now, not later (TestSprite MCP):** Generate/update tests for each change and run them. Return a short pass/fail summary with artifact links. Keep the suite green (unit/integration/RLS/E2E as applicable).
+
+**After every response (mandatory):**
+1. Update **SESSION_CHECKLIST.md** (status, owner, PR links; add new tasks discovered).  
+2. Update **SESSION_MEMORY.md** (what changed this session, next steps).  
+3. Append a one-liner to `docs/logs/AGENT_EVENT_LOG.md` and a detailed entry in the relevant `docs/logs/agents/*.log.md`.
+
+**Auto-summarization rule (to prevent context bloat):**
+- If `SESSION_MEMORY.md` > **200 lines**, summarize older sessions into brief bullets and keep only the latest session in detail.  
+- If `SESSION_CHECKLIST.md` > **200 lines**, archive completed items to a summary section and keep only active items in the main list.
 
 ---
 
@@ -171,9 +199,12 @@ Open the relevant file and execute in **plan mode**; **do not commit** until app
 
 ## 11) Agent Event Logs (memory hygiene)
 
-Claude: at the **end of every session or PR**, append a concise entry to:
-- `/docs/logs/AGENT_EVENT_LOG.md` (index)
-- `/docs/logs/agents/<role>.log.md` (your role-specific log)
+Claude: **After EVERY prompt response**, you MUST:
+1. **Update SESSION_CHECKLIST.md** - Mark completed tasks, add new ones
+2. **Update SESSION_MEMORY.md** - Add what was accomplished this response
+3. At **session end**, also update:
+   - `/docs/logs/AGENT_EVENT_LOG.md` (index)
+   - `/docs/logs/agents/<role>.log.md` (your role-specific log)
 
 **Entry template:** use `/docs/logs/TEMPLATE_EVENT_ENTRY.md`. Keep 10–15 lines max; link the PR/commit and the playbooks used.
 

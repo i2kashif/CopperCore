@@ -81,3 +81,6 @@ export interface OpeningStockFormData {
 
 // Re-export Product Family types
 export * from './productFamily'
+
+// Re-export SKU types
+export * from './sku'

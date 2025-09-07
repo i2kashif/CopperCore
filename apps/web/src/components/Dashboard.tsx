@@ -1,4 +1,5 @@
 import { useAuth } from '../features/auth'
+import { useNavigate } from 'react-router-dom'
 
 interface UserInfoCardProps {
   user: any
@@ -88,9 +89,11 @@ interface QuickActionProps {
 }
 
 function QuickAction({ title, description, icon, href, onClick, disabled = false }: QuickActionProps) {
+  const navigate = useNavigate()
+  
   const handleClick = () => {
     if (href && !disabled) {
-      window.location.href = href
+      navigate(href)
     } else if (onClick) {
       onClick()
     }

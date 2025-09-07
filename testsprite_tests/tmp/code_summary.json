@@ -1,106 +1,158 @@
 {
   "tech_stack": [
     "TypeScript",
-    "React",
+    "React 18",
     "Node.js",
-    "Vite",
     "Fastify",
     "Supabase",
     "PostgreSQL",
+    "Vite",
     "TailwindCSS",
-    "React Router",
-    "TanStack Query",
+    "React Query (@tanstack/react-query)",
     "Zod",
+    "Playwright",
     "Vitest",
-    "Playwright"
+    "pnpm"
   ],
   "features": [
     {
-      "name": "Scanner Component",
-      "description": "Basic barcode/QR scanner component for PU tracking",
-      "files": ["apps/web/src/components/Scanner.tsx"]
-    },
-    {
-      "name": "React Web Application",
-      "description": "Main React frontend application with routing and UI framework",
+      "name": "Authentication System",
+      "description": "Professional authentication UI with copper branding, CEO login, remember me functionality, and factory-scoped access control",
       "files": [
-        "apps/web/src/App.tsx",
-        "apps/web/src/index.css",
-        "apps/web/index.html",
-        "apps/web/vite.config.ts",
-        "apps/web/tailwind.config.js"
+        "apps/web/src/features/auth/components/LoginForm.tsx",
+        "apps/web/src/features/auth/components/AuthLayout.tsx",
+        "apps/web/src/features/auth/components/AuthHeader.tsx",
+        "apps/web/src/hooks/useCurrentUser.ts"
       ]
     },
     {
-      "name": "Fastify API Server",
-      "description": "Backend API server using Fastify framework with TypeScript",
+      "name": "Manage Company Dashboard",
+      "description": "CEO-level management interface for factories, users, product families, and SKU catalog with tabbed navigation and copper theming",
       "files": [
-        "apps/api/package.json",
-        "apps/api/src/server.ts"
+        "apps/web/src/features/manage-company/components/ManageCompany.tsx",
+        "apps/web/src/features/manage-company/components/FactoriesTab.tsx",
+        "apps/web/src/features/manage-company/components/UsersTab.tsx",
+        "apps/web/src/features/manage-company/components/OpeningStockTab.tsx",
+        "apps/web/src/features/manage-company/index.ts"
       ]
     },
     {
-      "name": "Shared Package",
-      "description": "Shared utilities, types, and validation schemas between frontend and backend",
+      "name": "User Management with Factory Scoping",
+      "description": "BACK-13 to BACK-16: User CRUD with CEO global visibility, dynamic factory assignments, optimistic updates, and realtime synchronization",
       "files": [
-        "packages/shared/package.json"
+        "apps/web/src/features/manage-company/hooks/useUsers.ts",
+        "apps/web/src/features/manage-company/components/UsersTab.tsx",
+        "apps/web/src/hooks/useRealtimeUpdates.ts",
+        "apps/web/src/services/api/users.ts"
       ]
     },
     {
-      "name": "Database Schema Foundation",
-      "description": "PostgreSQL schema with RLS policies for factory-scoped ERP operations",
+      "name": "Factory Management",
+      "description": "Factory CRUD operations with address management, activation controls, and dynamic dropdown integration for user assignments",
       "files": [
-        "infra/migrations/001_initial_schema.sql",
-        "infra/migrations/002_rls_policies.sql",
-        "infra/schema/tables/",
-        "infra/schema/policies/"
+        "apps/web/src/features/manage-company/hooks/useFactories.ts",
+        "apps/web/src/features/manage-company/components/FactoriesTab.tsx",
+        "apps/web/src/services/api/factories.ts"
       ]
     },
     {
-      "name": "Authentication Infrastructure",
-      "description": "Supabase Auth integration with role-based access control and factory scoping (planned)",
-      "files": []
-    },
-    {
-      "name": "Testing Infrastructure", 
-      "description": "Comprehensive testing setup with unit, integration, and E2E tests",
+      "name": "Product Family Configuration",
+      "description": "Configuration-first product system with dynamic attributes, SKU naming rules, validation, and industry templates",
       "files": [
-        "tests/acceptance/",
-        "tests/rls/",
-        "tests/backdating/",
-        "playwright.config.ts",
-        "vitest.config.ts"
+        "apps/web/src/features/manage-company/hooks/useProductFamilies.ts",
+        "apps/web/src/features/manage-company/components/ProductFamiliesTab.tsx",
+        "apps/web/src/features/manage-company/types/product-family.ts"
       ]
     },
     {
-      "name": "CI/CD Pipeline",
-      "description": "GitHub Actions workflows for automated testing, security checks, and deployment",
+      "name": "SKU Catalog Management",
+      "description": "Complete SKU lifecycle with creation wizard, bulk generation, pending approval workflow, and on-the-fly creation support",
       "files": [
-        ".github/workflows/ci.yml",
-        ".github/workflows/security-checks.yml", 
-        ".github/workflows/staging-migrations.yml",
-        ".github/workflows/release.yml"
+        "apps/web/src/features/manage-company/components/CatalogTab.tsx",
+        "apps/web/src/features/manage-company/components/SKUCreationWizard.tsx",
+        "apps/web/src/features/manage-company/components/BulkGenerationModal.tsx",
+        "apps/web/src/features/manage-company/hooks/useSKUs.ts",
+        "apps/web/src/features/manage-company/types/sku.ts"
       ]
     },
     {
-      "name": "MCP Tools Configuration",
-      "description": "Model Context Protocol tools setup for GitHub, filesystem, Supabase, web search, TestSprite, and UI generation",
+      "name": "Realtime Updates Infrastructure",
+      "description": "BACK-16: Supabase realtime channels with debounced updates (350ms), factory-scoped subscriptions, and cache invalidation",
       "files": [
-        ".claude/mcp_servers.json",
-        ".claude/mcp-configs/",
-        "docs/mcp-tools/"
+        "apps/web/src/hooks/useRealtimeUpdates.ts"
       ]
     },
     {
-      "name": "Documentation System",
-      "description": "Comprehensive documentation including PRD, ADRs, logs, and agent guidelines",
+      "name": "API Service Layer",
+      "description": "RESTful API services with error handling, optimistic locking, and factory scoping for all entity operations",
       "files": [
-        "docs/PRD/PRD_v1.5.md",
-        "docs/logs/SESSION_MEMORY.md",
-        "docs/logs/SESSION_CHECKLIST.md", 
-        "docs/adr/",
-        "CLAUDE.md",
-        "AGENT.md"
+        "apps/web/src/services/api/index.ts",
+        "apps/web/src/services/api/factories.ts",
+        "apps/web/src/services/api/users.ts"
+      ]
+    },
+    {
+      "name": "Backend API Infrastructure",
+      "description": "Fastify-based API with Supabase integration, role-based auth, factory scoping, audit logging, and user-factory assignments",
+      "files": [
+        "apps/api/src/server.ts",
+        "apps/api/src/lib/supabase.ts",
+        "apps/api/src/middleware/auth.ts",
+        "apps/api/src/types/database.ts",
+        "apps/api/src/modules/common/types.ts",
+        "apps/api/src/modules/common/validation.ts"
+      ]
+    },
+    {
+      "name": "Factories API Module",
+      "description": "Complete factory CRUD with RLS enforcement, CEO/Director global access, audit logging, and optimistic locking",
+      "files": [
+        "apps/api/src/modules/factories/service.ts",
+        "apps/api/src/modules/factories/routes.ts"
+      ]
+    },
+    {
+      "name": "Users API Module",
+      "description": "User management API with role-based filtering, factory assignment support, status toggle, and comprehensive validation",
+      "files": [
+        "apps/api/src/modules/users/service.ts",
+        "apps/api/src/modules/users/routes.ts"
+      ]
+    },
+    {
+      "name": "User-Factory Assignments API",
+      "description": "Many-to-many relationship management for user-factory assignments with bulk operations and assignment statistics",
+      "files": [
+        "apps/api/src/modules/user-factory-assignments/service.ts",
+        "apps/api/src/modules/user-factory-assignments/routes.ts"
+      ]
+    },
+    {
+      "name": "Audit System",
+      "description": "Tamper-evident audit chain with SHA-256 hash linking, full CRUD operation logging, and chain integrity verification",
+      "files": [
+        "apps/api/src/modules/audit/service.ts"
+      ]
+    },
+    {
+      "name": "UI Component System",
+      "description": "Professional copper-themed React components with variants, loading states, accessibility, and consistent styling",
+      "files": [
+        "apps/web/src/components/ui/Button.tsx",
+        "apps/web/src/components/ui/TextField.tsx",
+        "apps/web/src/components/ui/Card.tsx",
+        "apps/web/src/components/ui/ErrorAlert.tsx"
+      ]
+    },
+    {
+      "name": "Type System",
+      "description": "Comprehensive TypeScript types for all entities with factory scoping, audit fields, and API response structures",
+      "files": [
+        "apps/web/src/features/manage-company/types/index.ts",
+        "apps/web/src/features/manage-company/types/sku.ts",
+        "apps/web/src/features/manage-company/types/product-family.ts",
+        "apps/api/src/modules/common/types.ts",
+        "packages/shared/src/types/index.ts"
       ]
     }
   ]

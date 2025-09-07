@@ -191,7 +191,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
         updatedAt: new Date().toISOString(),
         lastLoginAt: new Date().toISOString(),
         assignedFactories: ['factory-1'],
-        createdBy: null,
+        currentFactoryId: null, // CEO has global access
+        createdBy: 'system',
       }
       
       const mockFactory: Factory = {

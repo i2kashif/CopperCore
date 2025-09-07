@@ -173,19 +173,60 @@ function UserForm({
 }
 
 export function UsersTab() {
-  const { users, loading, createUser, updateUser, deleteUser, toggleUserStatus } = useUsers()
-  const { factories } = useFactories()
+  const { 
+    users, 
+    loading, 
+    createUser, 
+    updateUser, 
+    deleteUser, 
+    toggleUserStatus, 
+    getDisplayFactoryInfo,
+    refreshUsers
+  } = useUsers()
+  const { factories, loading: factoriesLoading } = useFactories()
   const [showForm, setShowForm] = useState(false)
   const [editingUser, setEditingUser] = useState<User | null>(null)
+  // BACK-15: Add optimistic update states for better UX
+  const [actionLoading, setActionLoading] = useState<Record<string, boolean>>({})
+  const [optimisticUsers, setOptimisticUsers] = useState<User[]>([])
 
   const handleSubmit = async (data: UserFormData) => {
-    if (editingUser) {
-      await updateUser(editingUser.id, data)
-    } else {
-      await createUser(data)
+    try {
+      // BACK-15: Add loading state for form submission
+      const actionKey = editingUser ? `edit-${editingUser.id}` : 'create'
+      setActionLoading(prev => ({ ...prev, [actionKey]: true }))
+      
+      if (editingUser) {
+        // Optimistic update: show changes immediately
+        const optimisticUpdate = { ...editingUser, ...data, updatedAt: new Date().toISOString() }
+        setOptimisticUsers(prev => prev.map(u => u.id === editingUser.id ? optimisticUpdate : u))
+        
+        await updateUser(editingUser.id, data)
+      } else {
+        // Optimistic create: show new user immediately
+        const tempId = `temp-${Date.now()}`
+        const optimisticUser: User = {
+          id: tempId,
+          ...data,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          lastLoginAt: undefined
+        }
+        setOptimisticUsers(prev => [optimisticUser, ...prev])
+        
+        await createUser(data)
+      }
+      
+      setShowForm(false)
+      setEditingUser(null)
+    } catch (error) {
+      // Revert optimistic updates on error
+      setOptimisticUsers([])
+      console.error('Failed to submit user form:', error)
+    } finally {
+      const actionKey = editingUser ? `edit-${editingUser.id}` : 'create'
+      setActionLoading(prev => ({ ...prev, [actionKey]: false }))
     }
-    setShowForm(false)
-    setEditingUser(null)
   }
 
   const handleEdit = (user: User) => {
@@ -193,14 +234,55 @@ export function UsersTab() {
     setShowForm(true)
   }
 
-  const handleDelete = async (id: string) => {
-    if (confirm('Are you sure you want to delete this user?')) {
-      await deleteUser(id)
+  // BACK-15: Add optimistic toggle status with loading states
+  const handleToggleStatus = async (userId: string) => {
+    try {
+      setActionLoading(prev => ({ ...prev, [`toggle-${userId}`]: true }))
+      
+      // Optimistic update: toggle status immediately
+      setOptimisticUsers(prev => prev.length > 0 ? prev.map(u => 
+        u.id === userId ? { ...u, isActive: !u.isActive, updatedAt: new Date().toISOString() } : u
+      ) : [])
+      
+      await toggleUserStatus(userId)
+    } catch (error) {
+      // Revert optimistic update on error
+      setOptimisticUsers([])
+      console.error('Failed to toggle user status:', error)
+    } finally {
+      setActionLoading(prev => ({ ...prev, [`toggle-${userId}`]: false }))
     }
   }
 
-  const getFactoryNames = (factoryIds: string[]) => {
-    if (factoryIds.length === 0) return 'All Factories'
+  const handleDelete = async (id: string) => {
+    if (confirm('Are you sure you want to delete this user?')) {
+      try {
+        // BACK-15: Add loading state for delete action
+        setActionLoading(prev => ({ ...prev, [`delete-${id}`]: true }))
+        
+        // Optimistic delete: hide user immediately
+        setOptimisticUsers(prev => prev.filter(u => u.id !== id))
+        
+        await deleteUser(id)
+      } catch (error) {
+        // Revert optimistic delete on error
+        setOptimisticUsers([])
+        console.error('Failed to delete user:', error)
+      } finally {
+        setActionLoading(prev => ({ ...prev, [`delete-${id}`]: false }))
+      }
+    }
+  }
+
+  const getFactoryNames = (user: User) => {
+    const factoryInfo = getDisplayFactoryInfo(user)
+    
+    if (factoryInfo.isGlobal) {
+      return factoryInfo.displayText // "Global Access"
+    }
+    
+    const factoryIds = factoryInfo.displayText as string[]
+    if (factoryIds.length === 0) return 'No Factories Assigned'
     return factoryIds
       .map(id => factories.find(f => f.id === id)?.name || id)
       .join(', ')
@@ -220,15 +302,41 @@ export function UsersTab() {
   return (
     <div>
       <div className="mb-4 flex justify-between items-center">
-        <h3 className="text-lg font-medium text-gray-900">Users</h3>
+        <div className="flex items-center space-x-3">
+          <h3 className="text-lg font-medium text-gray-900">Users</h3>
+          {/* BACK-16: Realtime connection status */}
+          <div className="flex items-center space-x-2 text-xs text-gray-500">
+            <div className="flex items-center space-x-1">
+              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+              <span>Live Updates</span>
+            </div>
+            <button 
+              onClick={refreshUsers}
+              className="text-copper-600 hover:text-copper-800 font-medium"
+              title="Refresh users"
+            >
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+            </button>
+          </div>
+        </div>
         {!showForm && (
           <button
             onClick={() => setShowForm(true)}
-            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-copper-600 hover:bg-copper-700"
+            disabled={actionLoading['create']}
+            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-copper-600 hover:bg-copper-700 disabled:opacity-50"
           >
-            <svg className="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-            </svg>
+            {actionLoading['create'] ? (
+              <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+            ) : (
+              <svg className="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+            )}
             Add User
           </button>
         )}
@@ -251,13 +359,21 @@ export function UsersTab() {
       ) : (
         <div className="bg-white shadow overflow-hidden sm:rounded-md">
           {loading ? (
-            <div className="p-4 text-center">Loading...</div>
-          ) : users.length === 0 ? (
+            <div className="p-8 text-center">
+              <div className="inline-flex items-center px-4 py-2 font-semibold leading-6 text-sm shadow rounded-md text-white bg-copper-500 hover:bg-copper-400 transition ease-in-out duration-150">
+                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Loading users...
+              </div>
+            </div>
+          ) : (optimisticUsers.length > 0 ? optimisticUsers : users).length === 0 ? (
             <div className="p-4 text-center text-gray-500">No users yet</div>
           ) : (
             <ul className="divide-y divide-gray-200">
-              {users.map((user) => (
-                <li key={user.id}>
+              {(optimisticUsers.length > 0 ? optimisticUsers : users).map((user) => (
+                <li key={user.id} className={user.id.startsWith('temp-') ? 'bg-blue-50 border-l-4 border-blue-400' : ''}>
                   <div className="px-4 py-4 sm:px-6">
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
@@ -268,6 +384,11 @@ export function UsersTab() {
                           <span className={`ml-2 px-2 py-1 text-xs rounded-full ${getRoleBadgeColor(user.role)}`}>
                             {user.role}
                           </span>
+                          {(user.role === 'CEO' || user.role === 'Director') && (
+                            <span className="ml-2 px-2 py-1 text-xs rounded-full bg-orange-100 text-orange-800 border border-orange-200">
+                              Global Access
+                            </span>
+                          )}
                           {user.isActive ? (
                             <span className="ml-2 px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">
                               Active
@@ -282,13 +403,14 @@ export function UsersTab() {
                           @{user.username} • {user.email}
                         </p>
                         <p className="mt-1 text-sm text-gray-500">
-                          Factories: {getFactoryNames(user.assignedFactories)}
+                          Factories: {getFactoryNames(user)}
                         </p>
                       </div>
                       <div className="flex items-center space-x-2">
                         <button
-                          onClick={() => toggleUserStatus(user.id)}
-                          className="text-gray-600 hover:text-gray-900"
+                          onClick={() => handleToggleStatus(user.id)}
+                          disabled={actionLoading[`toggle-${user.id}`]}
+                          className="text-gray-600 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
                           title={user.isActive ? 'Deactivate' : 'Activate'}
                         >
                           <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

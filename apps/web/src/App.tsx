@@ -1,8 +1,10 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Link } from 'react-router-dom'
 import { AuthProvider, RouteGuard, useAuth } from './features/auth'
 import Scanner from './components/Scanner'
 import Dashboard from './components/Dashboard'
 import { ManageCompany } from './features/manage-company'
+import { ToastProvider } from './hooks/useToast'
+import { ToastContainer } from './components/Toast'
 
 function AppHeader() {
   const { user, currentFactory } = useAuth()
@@ -58,25 +60,25 @@ function AppHeader() {
           
           <div className="flex items-center">
             <nav className="flex space-x-4">
-              <a
-                href="/"
+              <Link
+                to="/"
                 className="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium transition-colors"
               >
                 Dashboard
-              </a>
-              <a
-                href="/scanner"
+              </Link>
+              <Link
+                to="/scanner"
                 className="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium transition-colors"
               >
                 Scanner
-              </a>
+              </Link>
               {(user.role === 'CEO' || user.role === 'Director') && (
-                <a
-                  href="/manage-company"
+                <Link
+                  to="/manage-company"
                   className="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium transition-colors"
                 >
                   Manage Company
-                </a>
+                </Link>
               )}
             </nav>
           </div>
@@ -111,15 +113,18 @@ function AppRoutes() {
 
 function App() {
   return (
-    <AuthProvider>
-      <BrowserRouter>
-        <RouteGuard>
-          <AppLayout>
-            <AppRoutes />
-          </AppLayout>
-        </RouteGuard>
-      </BrowserRouter>
-    </AuthProvider>
+    <ToastProvider>
+      <AuthProvider>
+        <BrowserRouter>
+          <RouteGuard>
+            <AppLayout>
+              <AppRoutes />
+            </AppLayout>
+          </RouteGuard>
+          <ToastContainer />
+        </BrowserRouter>
+      </AuthProvider>
+    </ToastProvider>
   )
 }
 

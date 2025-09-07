@@ -1,6 +1,12 @@
 import Fastify from 'fastify'
 import cors from '@fastify/cors'
 import env from '@fastify/env'
+import cookie from '@fastify/cookie'
+import { checkDatabaseHealth } from './lib/supabase'
+import { setupAuthRoutes, startSessionCleanup } from './middleware/auth'
+import { factoriesRoutes } from './modules/factories/routes'
+import { usersRoutes } from './modules/users/routes'
+import { userFactoryAssignmentsRoutes } from './modules/user-factory-assignments/routes'
 
 const server = Fastify({
   logger: true
@@ -35,13 +41,44 @@ await server.register(cors, {
   }
 })
 
+// Register cookie support for session management
+await server.register(cookie, {
+  secret: process.env.COOKIE_SECRET || 'copper-core-cookie-secret-dev-only',
+  parseOptions: {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax'
+  }
+})
+
+// Health check endpoint with database status
 server.get('/health', async (request, reply) => {
-  return { status: 'ok', timestamp: new Date().toISOString() }
+  const dbHealth = await checkDatabaseHealth()
+  
+  return {
+    status: dbHealth.connected ? 'ok' : 'degraded',
+    timestamp: new Date().toISOString(),
+    database: {
+      connected: dbHealth.connected,
+      latency: dbHealth.latency,
+      error: dbHealth.error
+    },
+    version: '1.0.0'
+  }
 })
 
 server.get('/api/ping', async (request, reply) => {
-  return { message: 'pong', service: 'CopperCore API' }
+  return { message: 'pong', service: 'CopperCore API', version: '1.0.0' }
 })
+
+// Register route modules
+await setupAuthRoutes(server)
+await factoriesRoutes(server)
+await usersRoutes(server)
+await userFactoryAssignmentsRoutes(server)
+
+// Start session cleanup
+startSessionCleanup()
 
 const start = async () => {
   try {

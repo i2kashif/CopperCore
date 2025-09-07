@@ -2,7 +2,17 @@
   "status": "commited",
   "type": "frontend",
   "scope": "codebase",
-  "localEndpoint": "http://localhost:5173",
-  "loginUser": "test_acc",
-  "loginPassword": "123455abc"
+  "localEndpoint": "http://localhost:3001",
+  "loginUser": "ceo",
+  "loginPassword": "admin123",
+  "executionArgs": {
+    "projectName": "CopperCore",
+    "projectPath": "/Users/ibrahimkashif/Desktop/CopperCore",
+    "testIds": [],
+    "additionalInstruction": "Focus on authentication flow and navigation testing. Specifically test: 1) Login with CEO credentials 2) Navigate to Manage Company tab using the navigation links 3) Verify that authentication state is preserved during navigation 4) Ensure no unexpected logouts occur when clicking navigation links. Test the fix for the reported issue where clicking 'Manage Company' was causing logout.",
+    "envs": {
+      "API_KEY": "sk-user-vQol3yCeRq5naLiXMk1RvmS1JZ4721oB8OFMEkWFQF_bHQrr8OUZtRgRALpru25M1vwt-xfC1MiUaDqQkR_rrL_I3eNe0Bltq6k_SFpEVxIAfDyNjV-Dsjw9J8pEtsVnIbE"
+    }
+  },
+  "proxy": "http://f8865100-71d0-44f6-9224-11efeaaed7b8:WNB7zGVJ6w9Jw9LoPcEIQD7Dja3bZlUn@tun.testsprite.com:8080"
 }

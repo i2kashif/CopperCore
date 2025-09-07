@@ -4,8 +4,9 @@ import { FactoriesTab } from './FactoriesTab'
 import { UsersTab } from './UsersTab'
 import { OpeningStockTab } from './OpeningStockTab'
 import { ProductFamiliesTab } from './ProductFamiliesTab'
+import { CatalogTab } from './CatalogTab'
 
-type TabKey = 'factories' | 'users' | 'opening-stock' | 'product-families'
+type TabKey = 'factories' | 'users' | 'product-families' | 'catalog' | 'opening-stock'
 
 export function ManageCompany() {
   const { user } = useAuth()
@@ -26,8 +27,9 @@ export function ManageCompany() {
   const tabs = [
     { key: 'factories' as TabKey, label: 'Factories', icon: '🏭' },
     { key: 'users' as TabKey, label: 'Users', icon: '👥' },
-    { key: 'opening-stock' as TabKey, label: 'Opening Stock', icon: '📦' },
     { key: 'product-families' as TabKey, label: 'Product Families', icon: '🏷️' },
+    { key: 'catalog' as TabKey, label: 'Catalog', icon: '📚' },
+    { key: 'opening-stock' as TabKey, label: 'Opening Stock', icon: '📦' },
   ]
 
   return (
@@ -78,8 +80,9 @@ export function ManageCompany() {
         <div className="p-6">
           {activeTab === 'factories' && <FactoriesTab />}
           {activeTab === 'users' && <UsersTab />}
-          {activeTab === 'opening-stock' && <OpeningStockTab />}
           {activeTab === 'product-families' && <ProductFamiliesTab />}
+          {activeTab === 'catalog' && <CatalogTab />}
+          {activeTab === 'opening-stock' && <OpeningStockTab />}
         </div>
       </div>
 
@@ -100,6 +103,7 @@ export function ManageCompany() {
                 <li>Factories must be created before users can be assigned to them</li>
                 <li>CEO and Director roles have global access to all factories</li>
                 <li>Product Families define SKU structures and automatic naming rules</li>
+                <li>Catalog manages SKUs with bulk generation and approval workflows</li>
                 <li>Opening stock entries create an audit trail with user and timestamp</li>
                 <li>All changes are tracked in the activity log for compliance</li>
               </ul>
