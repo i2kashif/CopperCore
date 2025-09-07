@@ -158,6 +158,12 @@ export const mockUserFactoryAssignments = new Map([
   }]
 ])
 
+interface QueryFilter {
+  type: 'eq'
+  column: string
+  value: unknown
+}
+
 /**
  * Mock database client that mimics Supabase API
  */
@@ -179,8 +185,8 @@ export class MockDatabase {
 
 class MockQueryBuilder {
   private table: string
-  private filters: any[] = []
-  private selectColumns: string = '*'
+  private filters: QueryFilter[] = []
+  private selectColumns = '*'
   private limitCount?: number
   private singleResult = false
 
@@ -193,7 +199,7 @@ class MockQueryBuilder {
     return this
   }
 
-  eq(column: string, value: any) {
+  eq(column: string, value: unknown) {
     this.filters.push({ type: 'eq', column, value })
     return this
   }
@@ -208,11 +214,11 @@ class MockQueryBuilder {
     return this
   }
 
-  insert(data: any) {
+  insert(data: Record<string, unknown>) {
     return this.executeInsert(data)
   }
 
-  update(data: any) {
+  update(data: Record<string, unknown>) {
     return this.executeUpdate(data)
   }
 
@@ -220,7 +226,7 @@ class MockQueryBuilder {
     return this.executeDelete()
   }
 
-  async executeInsert(data: any) {
+  async executeInsert(data: Record<string, unknown>) {
     try {
       const store = this.getStore()
       const newItem = {
@@ -234,12 +240,13 @@ class MockQueryBuilder {
       store.set(newItem.id, newItem)
       
       return { data: newItem, error: null }
-    } catch (error: any) {
-      return { data: null, error: { message: error.message } }
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error)
+      return { data: null, error: { message } }
     }
   }
 
-  async executeUpdate(data: any) {
+  async executeUpdate(data: Record<string, unknown>) {
     try {
       const store = this.getStore()
       const items = this.applyFilters(Array.from(store.values()))
@@ -260,8 +267,9 @@ class MockQueryBuilder {
       })
       
       return { data: this.singleResult ? updatedItems[0] : updatedItems, error: null }
-    } catch (error: any) {
-      return { data: null, error: { message: error.message } }
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error)
+      return { data: null, error: { message } }
     }
   }
 
@@ -269,16 +277,17 @@ class MockQueryBuilder {
     try {
       const store = this.getStore()
       const items = this.applyFilters(Array.from(store.values()))
-      
-      items.forEach(item => store.delete(item.id))
-      
+
+      items.forEach(item => store.delete((item as { id: string }).id))
+
       return { data: items, error: null }
-    } catch (error: any) {
-      return { data: null, error: { message: error.message } }
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error)
+      return { data: null, error: { message } }
     }
   }
 
-  async then(resolve: any, reject: any) {
+  async then(resolve: (_value: unknown) => void, reject: (_reason: unknown) => void) {
     try {
       const store = this.getStore()
       let results = Array.from(store.values())
@@ -298,32 +307,33 @@ class MockQueryBuilder {
       } else {
         resolve({ data: results, error: null })
       }
-    } catch (error: any) {
-      reject({ data: null, error: { message: error.message } })
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error)
+      reject({ data: null, error: { message } })
     }
   }
 
-  private getStore(): Map<string, any> {
+  private getStore(): Map<string, Record<string, unknown>> {
     switch (this.table) {
       case 'factories':
-        return mockFactories as Map<string, any>
+        return mockFactories as Map<string, Record<string, unknown>>
       case 'users':
-        return mockUsers as Map<string, any>
+        return mockUsers as Map<string, Record<string, unknown>>
       case 'user_factory_assignments':
-        return mockUserFactoryAssignments as Map<string, any>
+        return mockUserFactoryAssignments as Map<string, Record<string, unknown>>
       default:
         throw new Error(`Table ${this.table} not found in mock database`)
     }
   }
 
-  private applyFilters(items: any[]): any[] {
-    return items.filter(item => {
-      return this.filters.every(filter => {
+  private applyFilters(items: Record<string, unknown>[]): Record<string, unknown>[] {
+    return items.filter(item =>
+      this.filters.every(filter => {
         if (filter.type === 'eq') {
           return item[filter.column] === filter.value
         }
         return true
       })
-    })
+    )
   }
 }

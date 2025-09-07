@@ -6,7 +6,6 @@
  */
 
 import { createClient } from '@supabase/supabase-js'
-import * as fs from 'fs'
 import * as path from 'path'
 import * as dotenv from 'dotenv'
 
@@ -22,50 +21,6 @@ if (!supabaseUrl || !supabaseKey) {
 }
 
 const supabase = createClient(supabaseUrl, supabaseKey)
-
-async function setupDatabase() {
-  try {
-    console.log('🚀 Setting up development database...')
-    
-    // Read the SQL file
-    const sqlPath = path.join(__dirname, 'init.sql')
-    const sql = fs.readFileSync(sqlPath, 'utf8')
-    
-    // Split into individual statements (simple split by semicolon)
-    const statements = sql
-      .split(';')
-      .map(s => s.trim())
-      .filter(s => s.length > 0 && !s.startsWith('--'))
-    
-    // Execute each statement
-    for (const statement of statements) {
-      console.log(`Executing: ${statement.substring(0, 50)}...`)
-      
-      const { error } = await supabase.rpc('exec_sql', {
-        sql: statement + ';'
-      })
-      
-      if (error) {
-        // Try direct execution if RPC fails
-        console.warn('RPC failed, trying alternative method:', error.message)
-        // Note: Direct SQL execution via Supabase client is limited
-        // For full setup, you may need to use the Supabase dashboard or CLI
-      }
-    }
-    
-    console.log('✅ Database setup complete!')
-    console.log('\n📝 Test credentials:')
-    console.log('  CEO: username=ceo, password=admin123')
-    console.log('  Director: username=director, password=password')
-    console.log('  Manager: username=manager_lhr, password=password')
-    console.log('  Worker: username=worker_lhr, password=password')
-    console.log('  Office: username=office, password=password')
-    
-  } catch (error) {
-    console.error('❌ Database setup failed:', error)
-    process.exit(1)
-  }
-}
 
 // Alternative: Use Supabase's JavaScript API to create tables
 async function setupDatabaseViaAPI() {

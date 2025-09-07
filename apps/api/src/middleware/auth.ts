@@ -245,6 +245,7 @@ export function authorize(options: AuthOptions = {}) {
 /**
  * Session management endpoints
  */
+// eslint-disable-next-line max-lines-per-function
 export async function setupAuthRoutes(fastify: FastifyInstance) {
   // Mock login endpoint (replace with proper auth in production)
   fastify.post('/auth/login', async (request, reply) => {
@@ -333,7 +334,7 @@ export async function setupAuthRoutes(fastify: FastifyInstance) {
   })
   
   // Session info endpoint
-  fastify.get('/auth/me', { preHandler: authenticate }, async (request, reply) => {
+  fastify.get('/auth/me', { preHandler: authenticate }, async request => {
     return {
       success: true,
       data: {
@@ -349,7 +350,7 @@ export async function setupAuthRoutes(fastify: FastifyInstance) {
   })
   
   // Health check for auth system
-  fastify.get('/auth/health', async (request, reply) => {
+  fastify.get('/auth/health', async () => {
     const activeSessions = sessionStore.size
     const expiredSessions = Array.from(sessionStore.values())
       .filter(session => session.expires_at < Date.now()).length

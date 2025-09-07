@@ -27,12 +27,11 @@ export function getSupabaseClient(): SupabaseClient<Database> | MockDatabase {
       console.log('⚠️  Using mock in-memory database (Supabase not configured)')
       useMockDb = true
       supabaseInstance = new MockDatabase()
-      return supabaseInstance as any
+      return supabaseInstance
     }
 
     // Development mode: Handle case where we might be using anon key instead of service role
     const isDevelopment = process.env.NODE_ENV === 'development'
-    const isLocalSupabase = supabaseUrl.includes('localhost')
     
     console.log(`🔧 Supabase client: ${isDevelopment ? 'development' : 'production'} mode`)
     console.log(`📍 URL: ${supabaseUrl}`)
@@ -53,8 +52,8 @@ export function getSupabaseClient(): SupabaseClient<Database> | MockDatabase {
       }
     })
   }
-  
-  return supabaseInstance as any
+
+  return supabaseInstance
 }
 
 /**
@@ -76,7 +75,7 @@ export function getFactoryScopedClient(
   
   // Set RLS context variables for factory scoping
   // These will be used by RLS policies to filter data
-  const rpcCall = client.rpc('set_user_context', {
+  void client.rpc('set_user_context', {
     p_user_id: userId,
     p_factory_ids: factoryIds,
     p_is_global: isGlobal
@@ -140,9 +139,9 @@ export async function checkDatabaseHealth(): Promise<{
  * Production code should use typed queries through the client.
  */
 export async function executeRawSQL(
-  sql: string, 
-  params: any[] = []
-): Promise<{ data: any; error: any }> {
+  sql: string,
+  params: unknown[] = []
+): Promise<{ data: unknown; error: unknown }> {
   const client = getSupabaseClient()
   
   try {
@@ -168,8 +167,8 @@ export async function executeRawSQL(
  * All operations must succeed or all will be rolled back.
  */
 export async function withTransaction<T>(
-  operations: (client: SupabaseClient<Database>) => Promise<T>
-): Promise<{ data: T | null; error: any }> {
+  operations: (_client: SupabaseClient<Database>) => Promise<T>
+): Promise<{ data: T | null; error: unknown }> {
   const client = getSupabaseClient()
   
   try {
