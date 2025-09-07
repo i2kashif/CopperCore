@@ -14,11 +14,12 @@ const server = Fastify({
 
 const schema = {
   type: 'object',
-  required: ['SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY'],
+  required: [],  // No required fields - we'll use mock DB if not provided
   properties: {
     SUPABASE_URL: { type: 'string' },
     SUPABASE_SERVICE_ROLE_KEY: { type: 'string' },
-    PORT: { type: 'string', default: '3001' }
+    PORT: { type: 'string', default: '3001' },
+    USE_MOCK_DB: { type: 'string', default: 'true' }
   }
 }
 

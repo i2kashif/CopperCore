@@ -1,5 +1,6 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '../types/database'
+import { MockDatabase } from './mock-db'
 
 /**
  * Supabase client singleton for database access
@@ -13,19 +14,20 @@ import type { Database } from '../types/database'
  * - Realtime subscriptions for UI updates
  */
 
-let supabaseInstance: SupabaseClient<Database> | null = null
+let supabaseInstance: SupabaseClient<Database> | MockDatabase | null = null
+let useMockDb = false
 
-export function getSupabaseClient(): SupabaseClient<Database> {
+export function getSupabaseClient(): SupabaseClient<Database> | MockDatabase {
   if (!supabaseInstance) {
     const supabaseUrl = process.env.SUPABASE_URL
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
     
-    if (!supabaseUrl) {
-      throw new Error('SUPABASE_URL environment variable is required. Make sure .env file is loaded.')
-    }
-    
-    if (!supabaseServiceKey) {
-      throw new Error('SUPABASE_SERVICE_ROLE_KEY environment variable is required. Make sure .env file is loaded.')
+    // Use mock database if Supabase is not configured or explicitly requested
+    if (!supabaseUrl || !supabaseServiceKey || process.env.USE_MOCK_DB === 'true') {
+      console.log('⚠️  Using mock in-memory database (Supabase not configured)')
+      useMockDb = true
+      supabaseInstance = new MockDatabase()
+      return supabaseInstance as any
     }
 
     // Development mode: Handle case where we might be using anon key instead of service role
@@ -36,7 +38,7 @@ export function getSupabaseClient(): SupabaseClient<Database> {
     console.log(`📍 URL: ${supabaseUrl}`)
     console.log(`🔑 Key type: ${supabaseServiceKey.includes('anon') ? 'anon' : 'service_role'}`)
 
-    supabaseInstance = createClient<Database>(supabaseUrl, supabaseServiceKey, {
+    supabaseInstance = createClient<Database>(supabaseUrl!, supabaseServiceKey!, {
       auth: {
         autoRefreshToken: false,
         persistSession: false
@@ -52,7 +54,7 @@ export function getSupabaseClient(): SupabaseClient<Database> {
     })
   }
   
-  return supabaseInstance
+  return supabaseInstance as any
 }
 
 /**
@@ -92,6 +94,14 @@ export async function checkDatabaseHealth(): Promise<{
   error?: string 
 }> {
   try {
+    if (useMockDb) {
+      return { 
+        connected: true, 
+        latency: 1,
+        error: 'Using mock database' 
+      }
+    }
+    
     const start = Date.now()
     const client = getSupabaseClient()
     

@@ -83,11 +83,25 @@ export function useFactories() {
       setFactories(data)
       console.log('Successfully fetched factories:', data.length)
     } catch (err) {
-      const errorMessage = err instanceof ApiError 
-        ? err.message 
-        : 'Failed to load factories. Using mock data.'
+      let errorMessage = 'Failed to load factories'
+      
+      if (err instanceof ApiError) {
+        errorMessage = err.message
+        // Add more detailed error information
+        if (err.status === 0) {
+          errorMessage = 'Cannot connect to server. Please ensure the API server is running on port 3001.'
+        } else if (err.status === 401) {
+          errorMessage = 'Authentication required. Please log in again.'
+        } else if (err.status === 403) {
+          errorMessage = 'You do not have permission to view factories.'
+        }
+      } else if (err instanceof TypeError && err.message.includes('fetch')) {
+        errorMessage = 'Network error: Cannot reach the API server. Is it running?'
+      }
+      
       setError(errorMessage)
-      console.warn('Failed to fetch factories, falling back to mock data:', err)
+      console.error('Failed to fetch factories:', err)
+      console.info('Using mock data as fallback...')
       
       // BACK-14: Fallback to mock data to ensure factory dropdown works
       setFactories(mockFactories)
@@ -115,16 +129,47 @@ export function useFactories() {
       
       return newFactory
     } catch (err) {
-      const errorMessage = err instanceof ApiError 
-        ? err.message 
-        : 'Failed to create factory'
-      setError(errorMessage)
+      let errorMessage = 'Failed to create factory'
+      let errorDetails = ''
       
-      // Show error toast
+      if (err instanceof ApiError) {
+        errorMessage = err.message
+        
+        // Provide specific error messages based on status code
+        if (err.status === 0) {
+          errorMessage = 'Cannot connect to server'
+          errorDetails = 'Please ensure the API server is running on port 3001.'
+        } else if (err.status === 400) {
+          errorMessage = 'Invalid factory data'
+          errorDetails = err.details ? JSON.stringify(err.details) : 'Please check all required fields are filled correctly.'
+        } else if (err.status === 401) {
+          errorMessage = 'Authentication required'
+          errorDetails = 'Your session has expired. Please log in again.'
+        } else if (err.status === 403) {
+          errorMessage = 'Permission denied'
+          errorDetails = 'You do not have permission to create factories. Only CEO and Director roles can create factories.'
+        } else if (err.status === 409) {
+          errorMessage = 'Factory already exists'
+          errorDetails = 'A factory with this code already exists. Please use a different code.'
+        } else if (err.status === 500) {
+          errorMessage = 'Server error'
+          errorDetails = 'An internal server error occurred. Please try again later.'
+        }
+      } else if (err instanceof TypeError && err.message.includes('fetch')) {
+        errorMessage = 'Network error'
+        errorDetails = 'Cannot reach the API server. Please check your connection.'
+      } else {
+        errorDetails = err instanceof Error ? err.message : 'Unknown error occurred'
+      }
+      
+      const fullMessage = errorDetails ? `${errorMessage}: ${errorDetails}` : errorMessage
+      setError(fullMessage)
+      
+      // Show detailed error toast
       showToast({
         type: 'error',
-        title: 'Failed to create factory',
-        message: errorMessage
+        title: errorMessage,
+        message: errorDetails || 'Please try again or contact support if the issue persists.'
       })
       
       console.error('Failed to create factory:', err)
