@@ -1,0 +1,107 @@
+{
+  "tech_stack": [
+    "TypeScript",
+    "React",
+    "Node.js",
+    "Vite",
+    "Fastify",
+    "Supabase",
+    "PostgreSQL",
+    "TailwindCSS",
+    "React Router",
+    "TanStack Query",
+    "Zod",
+    "Vitest",
+    "Playwright"
+  ],
+  "features": [
+    {
+      "name": "Scanner Component",
+      "description": "Basic barcode/QR scanner component for PU tracking",
+      "files": ["apps/web/src/components/Scanner.tsx"]
+    },
+    {
+      "name": "React Web Application",
+      "description": "Main React frontend application with routing and UI framework",
+      "files": [
+        "apps/web/src/App.tsx",
+        "apps/web/src/index.css",
+        "apps/web/index.html",
+        "apps/web/vite.config.ts",
+        "apps/web/tailwind.config.js"
+      ]
+    },
+    {
+      "name": "Fastify API Server",
+      "description": "Backend API server using Fastify framework with TypeScript",
+      "files": [
+        "apps/api/package.json",
+        "apps/api/src/server.ts"
+      ]
+    },
+    {
+      "name": "Shared Package",
+      "description": "Shared utilities, types, and validation schemas between frontend and backend",
+      "files": [
+        "packages/shared/package.json"
+      ]
+    },
+    {
+      "name": "Database Schema Foundation",
+      "description": "PostgreSQL schema with RLS policies for factory-scoped ERP operations",
+      "files": [
+        "infra/migrations/001_initial_schema.sql",
+        "infra/migrations/002_rls_policies.sql",
+        "infra/schema/tables/",
+        "infra/schema/policies/"
+      ]
+    },
+    {
+      "name": "Authentication Infrastructure",
+      "description": "Supabase Auth integration with role-based access control and factory scoping (planned)",
+      "files": []
+    },
+    {
+      "name": "Testing Infrastructure", 
+      "description": "Comprehensive testing setup with unit, integration, and E2E tests",
+      "files": [
+        "tests/acceptance/",
+        "tests/rls/",
+        "tests/backdating/",
+        "playwright.config.ts",
+        "vitest.config.ts"
+      ]
+    },
+    {
+      "name": "CI/CD Pipeline",
+      "description": "GitHub Actions workflows for automated testing, security checks, and deployment",
+      "files": [
+        ".github/workflows/ci.yml",
+        ".github/workflows/security-checks.yml", 
+        ".github/workflows/staging-migrations.yml",
+        ".github/workflows/release.yml"
+      ]
+    },
+    {
+      "name": "MCP Tools Configuration",
+      "description": "Model Context Protocol tools setup for GitHub, filesystem, Supabase, web search, TestSprite, and UI generation",
+      "files": [
+        ".claude/mcp_servers.json",
+        ".claude/mcp-configs/",
+        "docs/mcp-tools/"
+      ]
+    },
+    {
+      "name": "Documentation System",
+      "description": "Comprehensive documentation including PRD, ADRs, logs, and agent guidelines",
+      "files": [
+        "docs/PRD/PRD_v1.5.md",
+        "docs/logs/SESSION_MEMORY.md",
+        "docs/logs/SESSION_CHECKLIST.md", 
+        "docs/adr/",
+        "CLAUDE.md",
+        "AGENT.md"
+      ]
+    }
+  ]
+}

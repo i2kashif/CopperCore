@@ -19,7 +19,7 @@
 ---
 
 ## Now (Next 5 - Priority Implementation Queue)
-- 🟦 UI-1: Authentication System Foundation (Supabase Auth + factory selection + role-based routing) • **Owner:** Frontend+Backend • PRD §2 (roles), §10 (auth) • Foundation for all UI
+- 🟨 UI-1: Authentication System Foundation (Supabase Auth + factory selection + role-based routing) • **Owner:** Frontend+Backend • PRD §2 (roles), §10 (auth) • Foundation for all UI • **In Progress:** feat/ui-1-authentication-system
 - 🟦 UI-2: Manage Company Dashboard (CEO: factories, users, factory assignments) • **Owner:** Frontend+Backend • PRD §5.12, §2.2 • Core admin functionality  
 - 🟦 UI-3: User Profile & Factory Context (factory switching, role display, session management) • **Owner:** Frontend • PRD §2.2 (factory linkage) • Session context foundation
 - 🟦 F-6.1: Realtime Infrastructure Foundation (entity-scoped channels + cache invalidation) • **Owner:** Frontend+Architect • PRD §3.7, §12.7 • Acceptance ID: 12.7 • Supports all future UI updates

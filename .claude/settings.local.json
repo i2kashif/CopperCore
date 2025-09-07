@@ -22,7 +22,10 @@
       "Bash(then echo \"⚠️  Found non-canonical env var names. Use DATABASE_URL, SUPABASE_URL, SUPABASE_ANON_KEY instead\")",
       "mcp__ide__getDiagnostics",
       "Bash(/dev/null)",
-      "Bash(env)"
+      "Bash(env)",
+      "mcp__TestSprite__testsprite_bootstrap_tests",
+      "mcp__TestSprite__testsprite_generate_code_summary",
+      "Bash(pnpm dev:*)"
     ],
     "deny": [],
     "ask": []
