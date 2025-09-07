@@ -1,5 +1,5 @@
 // apps/web/src/pages/auth/LoginForm.tsx
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '../hooks/useAuth'
 import { Button, Card, TextField, ErrorAlert } from '../../../components/ui'
 import { AuthLayout } from '../layouts/AuthLayout'
@@ -14,7 +14,18 @@ export default function LoginForm() {
   const { login, isLoading } = useAuth()
   const [formData, setFormData] = useState<LoginFormData>({ username: '', password: '' })
   const [rememberMe, setRememberMe] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // Load saved credentials on mount
+  useEffect(() => {
+    const savedUsername = localStorage.getItem('rememberedUsername')
+    const savedPassword = localStorage.getItem('rememberedPassword')
+    if (savedUsername && savedPassword) {
+      setFormData({ username: savedUsername, password: savedPassword })
+      setRememberMe(true)
+    }
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -26,8 +37,16 @@ export default function LoginForm() {
     }
 
     try {
+      // Save credentials if remember me is checked
+      if (rememberMe) {
+        localStorage.setItem('rememberedUsername', formData.username)
+        localStorage.setItem('rememberedPassword', formData.password)
+      } else {
+        localStorage.removeItem('rememberedUsername')
+        localStorage.removeItem('rememberedPassword')
+      }
+      
       await login(formData.username, formData.password)
-      // Optionally persist rememberMe here if your auth stack supports it
     } catch (err: any) {
       setError(err?.message || 'Invalid username or password. Please try again.')
     }
@@ -70,7 +89,7 @@ export default function LoginForm() {
                 autoFocus
                 autoComplete="username"
                 aria-describedby={usernameHelpId}
-                helperText="Your factory-assigned username"
+                helperText="Enter your username"
                 startIcon={
                   <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
@@ -82,7 +101,7 @@ export default function LoginForm() {
               <TextField
                 id="password"
                 name="password"
-                type="password"
+                type={showPassword ? "text" : "password"}
                 label="Password"
                 placeholder="Enter your password"
                 value={formData.password}
@@ -91,17 +110,33 @@ export default function LoginForm() {
                 required
                 autoComplete="current-password"
                 aria-describedby={passwordHelpId}
-                helperText="Keep your credentials confidential"
+                helperText="Enter your password"
                 startIcon={
                   <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
                       d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                   </svg>
                 }
+                endIcon={
+                  showPassword ? (
+                    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
+                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
+                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                  ) : (
+                    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
+                        d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                    </svg>
+                  )
+                }
+                onEndIconClick={() => setShowPassword(!showPassword)}
               />
             </div>
 
-            <div className="flex items-center justify-between">
+            <div className="flex items-center">
               <label className="flex items-center">
                 <input
                   id="remember"
@@ -109,13 +144,10 @@ export default function LoginForm() {
                   type="checkbox"
                   checked={rememberMe}
                   onChange={(e) => setRememberMe(e.target.checked)}
-                  className="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                  className="h-4 w-4 rounded border-slate-300 text-copper-600 focus:ring-copper-500"
                 />
                 <span className="ml-2 text-sm text-slate-600">Remember me</span>
               </label>
-              <a href="#" className="text-sm font-medium text-emerald-600 hover:text-emerald-500">
-                Forgot password?
-              </a>
             </div>
 
             {error && (
@@ -136,14 +168,6 @@ export default function LoginForm() {
             </Button>
           </form>
 
-          <div className="mt-6 pt-6 border-t border-slate-200">
-            <p className="text-xs text-center text-slate-500">
-              Factory-scoped access with role-based permissions
-            </p>
-            <p className="text-xs text-center text-slate-400 mt-1">
-              Pakistan fiscal compliance enabled
-            </p>
-          </div>
         </Card>
 
         <p className="text-xs text-center text-slate-500">

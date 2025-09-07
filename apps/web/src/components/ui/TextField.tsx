@@ -2,7 +2,7 @@ import { forwardRef, InputHTMLAttributes, ReactNode } from 'react'
 import { cva, type VariantProps } from 'class-variance-authority'
 
 const inputVariants = cva(
-  'block w-full rounded-xl border bg-white px-4 py-2.5 text-slate-900 transition-colors placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-500',
+  'block w-full rounded-xl border bg-white px-4 py-2.5 text-slate-900 transition-colors placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-copper-500 focus:border-copper-500 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-500',
   {
     variants: {
       error: {
@@ -24,6 +24,7 @@ export interface TextFieldProps
   errorMessage?: string
   startIcon?: ReactNode
   endIcon?: ReactNode
+  onEndIconClick?: () => void
 }
 
 const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
@@ -35,6 +36,7 @@ const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
       errorMessage,
       startIcon,
       endIcon,
+      onEndIconClick,
       error,
       className,
       disabled,
@@ -80,7 +82,12 @@ const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
             {...props}
           />
           {endIcon && (
-            <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400">
+            <div 
+              className={`absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 ${
+                onEndIconClick ? 'cursor-pointer' : 'pointer-events-none'
+              }`}
+              onClick={onEndIconClick}
+            >
               {endIcon}
             </div>
           )}

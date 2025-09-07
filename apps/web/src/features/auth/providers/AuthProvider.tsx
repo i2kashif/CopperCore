@@ -174,12 +174,48 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   }
 
-  const login = async (email: string, password: string) => {
+  const login = async (usernameOrEmail: string, password: string) => {
     dispatch({ type: 'SET_LOADING', payload: true })
     
+    // Mock CEO user for development
+    if (usernameOrEmail === 'ceo' && password === 'admin123') {
+      const mockUser: User = {
+        id: 'mock-ceo-id',
+        email: 'ceo@coppercore.com',
+        username: 'ceo',
+        firstName: 'Chief',
+        lastName: 'Executive',
+        role: 'CEO',
+        isActive: true,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        lastLoginAt: new Date().toISOString(),
+        assignedFactories: ['factory-1'],
+        createdBy: null,
+      }
+      
+      const mockFactory: Factory = {
+        id: 'factory-1',
+        name: 'Main Factory',
+        code: 'MF001',
+        location: 'Industrial Zone',
+        isActive: true,
+        createdAt: new Date().toISOString(),
+      }
+      
+      setTimeout(() => {
+        dispatch({ type: 'SET_USER', payload: mockUser })
+        dispatch({ type: 'SET_FACTORIES', payload: [mockFactory] })
+        dispatch({ type: 'SET_CURRENT_FACTORY', payload: mockFactory })
+      }, 500) // Simulate network delay
+      
+      return
+    }
+    
     try {
+      // Try actual Supabase auth if not mock user
       const { error } = await supabase.auth.signInWithPassword({
-        email,
+        email: usernameOrEmail,
         password,
       })
 

@@ -1,7 +1,7 @@
 export function AuthHeader() {
   return (
     <div className="text-center mb-8">
-      <div className="mx-auto h-14 w-14 flex items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-600 shadow-lg mb-4">
+      <div className="mx-auto h-14 w-14 flex items-center justify-center rounded-2xl bg-gradient-to-br from-copper-400 to-copper-600 shadow-lg mb-4">
         <svg
           className="h-8 w-8 text-white"
           fill="none"
@@ -17,11 +17,8 @@ export function AuthHeader() {
         </svg>
       </div>
       <h1 className="text-2xl font-bold text-slate-900">
-        CopperCore ERP
+        Copper Core
       </h1>
-      <p className="mt-2 text-sm text-slate-600">
-        Wire & Cable Manufacturing System
-      </p>
     </div>
   )
 }
