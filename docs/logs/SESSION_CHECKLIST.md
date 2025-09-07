@@ -7,75 +7,50 @@
 - 🟦 Todo • 🟨 In Progress • 🟩 Done • 🟥 Blocked
 
 ## How agents should use this
-1) At session start: skim **Done** and **Blocked**, then set the item you’ll work on to 🟨 and add yourself as **Owner**.  
+1) At session start: skim **Done** and **Blocked**, then set the item you'll work on to 🟨 and add yourself as **Owner**.  
 2) At session end: flip status, add a PR link, and append an event entry to your per-agent log (see `docs/logs/agents/*`).  
 3) Keep items short; if scope grows, open a new line item.
 
 ---
 
-## Housekeeping (once)
-- 🟦 HK-1: PR template at `.github/pull_request_template.md` • **Owner:** DevOps • PR:
-- 🟦 HK-2: Ensure `CLAUDE.md` links PRD at `docs/PRD/PRD_v1.5.md` • **Owner:** Docs/PM • PR:
-- 🟦 HK-3: Create per-agent logs under `docs/logs/agents/` • **Owner:** Docs/PM • PR:
-- 🟦 HK-4: Confirm `CODEOWNERS` has your handle/team • **Owner:** Architect • PR:
+## Foundation
+- 🟩 Housekeeping A–H complete (scaffold, config packs, MCP tools, CI/CD, security) • See agent logs for details
 
 ---
 
-## C) Monorepo Scaffold
-- 🟩 C-1: Root workspace (`package.json`, `pnpm-workspace.yaml`, `tsconfig.base.json`, `.gitignore`, `.env.example`) • **Owner:** Architect • PR: scaffold/monorepo
-- 🟩 C-2: `apps/web` (Vite + React + TanStack + Tailwind minimal) • **Owner:** Frontend • PR: scaffold/monorepo
-- 🟩 C-3: `packages/shared` (zod types + cache keys) • **Owner:** Backend • PR: scaffold/monorepo
-- 🟩 C-4: `infra` (migrations `000_base.sql`, `010_tables_min.sql`; `seed/seed.sql`; `scripts/migrate.sh`) • **Owner:** Architect • PR: scaffold/monorepo
-- 🟩 C-5: `.github/workflows/ci.yml` (lint/type/unit → db/rls → e2e → build) • **Owner:** DevOps • PR: scaffold/monorepo
-- 🟩 C-6: Docs (`ARCHITECTURE.md`, `DECISIONS.md` + 2 ADRs, `SECURITY.md`) • **Owner:** Docs/PM • PR: scaffold/monorepo
-- 🟩 C-7: `apps/api` Fastify stub (optional) • **Owner:** Backend • PR: scaffold/monorepo
+## Now (Next 5 - Priority Implementation Queue)
+- 🟦 F-1.1: WO Material Return Constraints (returns ≤ issued per lot) • **Owner:** Backend • PRD §5.3, §12.1 • Acceptance ID: 12.1
+- 🟦 F-2.1: PU Label Reprint & Invalidation (old codes inactive) • **Owner:** Frontend+Backend • PRD §5.5, §12.3 • Acceptance ID: 12.3  
+- 🟦 F-6.1: Realtime Infrastructure Foundation (entity-scoped channels) • **Owner:** Frontend+Architect • PRD §3.7, §12.7 • Acceptance ID: 12.7
+- 🟦 F-3.1: DN Rejection with Realtime Updates (draft revert + PU availability) • **Owner:** Backend+Frontend • PRD §5.6, §12.4, §3.7 • Acceptance ID: 12.4
+- 🟦 F-1.2: WO Production Log Validation (machine required, scrap tracking) • **Owner:** Backend • PRD §5.3, §3.4
 
-## D) Supabase / Postgres Config Pack
-- 🟩 D-1: RLS policy templates (factory_id, CEO/Director bypass, WITH CHECK) • **Owner:** Architect • PR: feat/supabase-config-pack
-- 🟩 D-2: Optimistic locking templates (version/updated_at + 409) • **Owner:** Backend • PR: feat/supabase-config-pack
-- 🟩 D-3: Tamper-evident audit chain templates • **Owner:** Architect • PR: feat/supabase-config-pack
-- 🟩 D-4: Realtime payload spec + cache key map • **Owner:** Frontend • PR: feat/supabase-config-pack
-- 🟩 D-5: Storage bucket policy stubs (PDFs with signed URLs) • **Owner:** Architect • PR: feat/supabase-config-pack
+---
 
-## E) MCP Tools: Config Examples (least-privilege)
-- 🟩 E-1: GitHub (read/PR scope) • **Owner:** DevOps • PR: config/mcp-tools
-- 🟩 E-2: Filesystem (repo-root only) • **Owner:** DevOps • PR: config/mcp-tools
-- 🟩 E-3: Supabase/Postgres (dev RW, prod RO) • **Owner:** Architect • PR: config/mcp-tools
-- 🟩 E-4: Web/Search (vendor docs) • **Owner:** Docs/PM • PR: config/mcp-tools
-- 🟩 E-5: TestSprite (QA gen/run; PR suggestions only) • **Owner:** QA • PR: config/mcp-tools
-- 🟩 E-6: Magic UI + Puppeteer (dev only) • **Owner:** Frontend • PR: config/mcp-tools
+## In Progress
 
-## F) CI/CD & Environments
-- 🟩 F-1: Branch protection (trunk + short-lived feature branches) • **Owner:** DevOps • PR/Settings: .github/BRANCH_PROTECTION.md
-- 🟩 F-2: Matrix pipeline (unit → DB+RLS → e2e → build) • **Owner:** DevOps • PR: Enhanced .github/workflows/ci.yml
-- 🟩 F-3: Staging-first migrations; Prod on release tag + PITR note • **Owner:** DevOps • PR: .github/workflows/staging-migrations.yml + release.yml
-- 🟩 F-4: Rollback template + backup/PITR checklist • **Owner:** DevOps • PR: .github/ROLLBACK_TEMPLATE.md + BACKUP_PITR_CHECKLIST.md
-
-## G) Test & QA Blueprint (PRD §12)
-- 🟩 G-1: Map acceptance tests to specs (Given/When/Then) • **Owner:** QA • PR: tests/acceptance/ACCEPTANCE_TEST_SPECS.md
-- 🟩 G-2: RLS assertions per role (CEO/Director/FM/FW) • **Owner:** QA • PR: tests/rls/RLS_ROLE_ASSERTIONS.md
-- 🟩 G-3: Backdating tests (CEO/Director only; audited) • **Owner:** QA • PR: tests/backdating/BACKDATING_TESTS.md
-
-## H) Security & Guardrails (Claude-aware)
-- 🟩 H-1: Diff guards for `/infra/policies/**` and `number_series*` • **Owner:** DevOps • PR: .github/workflows/security-checks.yml
-- 🟩 H-2: Manual approval checklist embedded in PR template • **Owner:** Docs/PM • PR: Enhanced .github/pull_request_template.md
-
-## I) Milestones (90-day)
-
-### M1: DB/RLS Foundation (Weeks 1–4)
-- 🟦 I-1.1: Database Schema Foundation (factories, users, product families, core entities) • **Owner:** Architect • PR(s):
-- 🟦 I-1.2: RLS Policy Implementation (factory scoping + CEO/Director bypass) • **Owner:** Architect • PR(s):
+### M1: DB/RLS Foundation (Weeks 1–4)  
+- 🟩 I-1.1: Database Schema Foundation (factories, users, product families, core entities) • **Owner:** Architect • PR: feat/m1-1-schema-foundation
+- 🟨 I-1.2: RLS Policy Implementation (factory scoping + CEO/Director bypass) • **Owner:** Architect • PR(s):
 - 🟦 I-1.3: Audit Chain & Optimistic Locking (tamper-evident + version fields) • **Owner:** Architect • PR(s):
 - 🟦 I-1.4: WO Core Operations (create/accept/issue/return/production) • **Owner:** Backend • PR(s):
 - 🟦 I-1.5: Realtime Infrastructure (channels + cache invalidation) • **Owner:** Frontend • PR(s):
 
+---
+
+## Todo
+
 ### M2: Logistics & Scanning (Weeks 5–8)
+- 🟦 F-2.2: Scanner Error Handling & Recovery (mis-scan + duplicate prevention) • **Owner:** Frontend • PRD §5.5
+- 🟦 F-3.2: GRN Discrepancy Management (short/over/damaged capture) • **Owner:** Backend+QA • PRD §5.7, §12.5 • Acceptance ID: 12.5
+- 🟦 F-4.1: Pending SKU Request & Proceed (FM→CEO approval flow) • **Owner:** Backend+Frontend • PRD §5.2, §12.2 • Acceptance ID: 12.2
 - 🟦 I-2.1: Packing Units & Labels (PU creation + barcode + reprint flow) • **Owner:** Backend • PR(s):
 - 🟦 I-2.2: Packing Lists & Scanner Flows (scanner-first + live tally) • **Owner:** Frontend • PR(s):
 - 🟦 I-2.3: Dispatch Note Lifecycle (create/verify/approve + rejection) • **Owner:** Backend • PR(s):
 - 🟦 I-2.4: GRN & Discrepancies (DN-first + discrepancy capture) • **Owner:** Backend • PR(s):
 
-### M3: Business Logic & QC (Weeks 9–12)
+### M3: Business Logic & QC (Weeks 9–12)  
+- 🟦 F-5.1: QC Blocking Matrix Implementation (FAIL/HOLD cannot pack) • **Owner:** Backend+Architect • PRD §3.5/§5.10, §12.6 • Acceptance ID: 12.6
 - 🟦 I-3.1: On-the-Fly SKU System (pending SKU + FM Request & Proceed) • **Owner:** Backend • PR(s):
 - 🟦 I-3.2: QC & Testing Framework (QCP + blocking matrix + overrides) • **Owner:** Backend • PR(s):
 - 🟦 I-3.3: Customer & Pricing Foundation (cross-refs + invoice generation) • **Owner:** Backend • PR(s):
@@ -86,5 +61,8 @@
 ## Blocked
 - 🟥 (add item) • **Reason:** • **Owner:** • **Unblock by:**
 
+---
+
 ## Done (append newest first)
-- 🟩 (item code) — PR:  — Log entry: 
+- 🟩 I-1.1: Database Schema Foundation • PR: feat/m1-1-schema-foundation • Log: 2025-09-06-architect-1
+- 🟩 Housekeeping A–H: Complete foundation (scaffold→security) • Multiple PRs • Log: See agent logs 2025-09-06
