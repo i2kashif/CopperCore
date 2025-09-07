@@ -84,7 +84,11 @@ RETURNS BOOLEAN AS $$
 BEGIN
   RETURN EXISTS (
     SELECT 1 FROM users 
-    WHERE id = auth.uid() 
+    WHERE id = CASE 
+      WHEN EXISTS (SELECT 1 FROM information_schema.schemata WHERE schema_name = 'auth') 
+      THEN auth.uid()
+      ELSE COALESCE(current_setting('app.user_id', true)::UUID, '00000000-0000-0000-0000-000000000000'::UUID)
+    END
     AND role IN ('CEO', 'DIRECTOR') 
     AND is_active = true
   );
@@ -97,7 +101,11 @@ RETURNS UUID AS $$
 BEGIN
   RETURN (
     SELECT factory_id FROM users 
-    WHERE id = auth.uid() 
+    WHERE id = CASE 
+      WHEN EXISTS (SELECT 1 FROM information_schema.schemata WHERE schema_name = 'auth') 
+      THEN auth.uid()
+      ELSE COALESCE(current_setting('app.user_id', true)::UUID, '00000000-0000-0000-0000-000000000000'::UUID)
+    END 
     AND is_active = true
   );
 END;

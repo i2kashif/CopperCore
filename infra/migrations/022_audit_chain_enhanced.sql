@@ -70,7 +70,13 @@ DECLARE
 BEGIN
   -- Resolve actor/ip/ua
   BEGIN
-    _actor := NULLIF(auth.uid()::TEXT, '')::UUID;  -- Supabase; null if not available
+    -- Check if auth schema exists (Supabase environment)
+    IF EXISTS (SELECT 1 FROM information_schema.schemata WHERE schema_name = 'auth') THEN
+      _actor := NULLIF(auth.uid()::TEXT, '')::UUID;  -- Supabase; null if not available
+    ELSE
+      -- Fallback for CI/testing: use session variable
+      _actor := COALESCE(current_setting('app.user_id', true)::UUID, NULL);
+    END IF;
   EXCEPTION WHEN OTHERS THEN
     _actor := NULL;
   END;

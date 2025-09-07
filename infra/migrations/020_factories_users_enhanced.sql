@@ -35,19 +35,39 @@ CREATE TABLE IF NOT EXISTS numbering_series (
 ALTER TABLE numbering_series ENABLE ROW LEVEL SECURITY;
 
 -- Enhanced RLS helper functions following rls_policy.md playbook
+-- Compatible with both Supabase (auth schema) and plain PostgreSQL (CI/testing)
 CREATE OR REPLACE FUNCTION cc_is_global() RETURNS BOOLEAN
-LANGUAGE SQL STABLE AS $$
-  SELECT (auth.jwt() ->> 'role') IN ('CEO','DIRECTOR')
+LANGUAGE plpgsql STABLE AS $$
+BEGIN
+  -- Check if auth schema exists (Supabase environment)
+  IF EXISTS (SELECT 1 FROM information_schema.schemata WHERE schema_name = 'auth') THEN
+    RETURN (auth.jwt() ->> 'role') IN ('CEO','DIRECTOR');
+  ELSE
+    -- Fallback for CI/testing: allow global access (or check session variable)
+    RETURN COALESCE(current_setting('app.user_role', true), 'FACTORY_WORKER') IN ('CEO','DIRECTOR');
+  END IF;
+END;
 $$;
 
 CREATE OR REPLACE FUNCTION cc_assigned_factories() RETURNS UUID[]
-LANGUAGE SQL STABLE AS $$
-  SELECT COALESCE(
-    ARRAY(
-      SELECT (jsonb_array_elements_text(COALESCE(auth.jwt() -> 'assigned_factories', '[]'::jsonb)))::uuid
-    ),
-    ARRAY[]::UUID[]
-  )
+LANGUAGE plpgsql STABLE AS $$
+BEGIN
+  -- Check if auth schema exists (Supabase environment)
+  IF EXISTS (SELECT 1 FROM information_schema.schemata WHERE schema_name = 'auth') THEN
+    RETURN COALESCE(
+      ARRAY(
+        SELECT (jsonb_array_elements_text(COALESCE(auth.jwt() -> 'assigned_factories', '[]'::jsonb)))::uuid
+      ),
+      ARRAY[]::UUID[]
+    );
+  ELSE
+    -- Fallback for CI/testing: return empty array (or parse session variable)
+    RETURN COALESCE(
+      string_to_array(current_setting('app.assigned_factories', true), ',')::UUID[],
+      ARRAY[]::UUID[]
+    );
+  END IF;
+END;
 $$;
 
 -- Legacy fallback function for existing simple assignments
@@ -61,7 +81,11 @@ LANGUAGE SQL STABLE AS $$
         ARRAY(
           SELECT uf.factory_id 
           FROM user_factory_assignments uf
-          WHERE uf.user_id = auth.uid()
+          WHERE uf.user_id = CASE 
+            WHEN EXISTS (SELECT 1 FROM information_schema.schemata WHERE schema_name = 'auth') 
+            THEN auth.uid()
+            ELSE COALESCE(current_setting('app.user_id', true)::UUID, '00000000-0000-0000-0000-000000000000'::UUID)
+          END
         )
     END,
     ARRAY[]::UUID[]
