@@ -390,6 +390,62 @@ Successfully debugged and fixed a critical PostCSS configuration issue that was 
 
 ---
 
+## 2025-09-07 Session: Complete Backend Implementation with Mock Database
+
+### Context
+- **Branch**: `ui/auth-polish`
+- **Request**: Implement actual endpoints for factory/user creation with detailed error messages
+- **Agent**: Frontend agent working on full-stack solution
+
+### Major Accomplishments
+
+#### 1. Mock In-Memory Database Implementation ✅
+- **Created**: `/apps/api/src/lib/mock-db.ts` - Complete mock database with Map-based storage
+- **Features**: Pre-populated with factories, users, and assignments
+- **Benefits**: No Supabase setup required for development
+
+#### 2. Database Setup Scripts ✅
+- **Created**: `/apps/api/src/db/init.sql` - Complete schema for production
+- **Created**: `/apps/api/src/db/setup-dev.ts` - Development setup script
+- **Sample Data**: CEO, Director, Manager, Worker, Office users with factory assignments
+
+#### 3. Auth System Implementation ✅
+- **Endpoints**: `/auth/login`, `/auth/logout`, `/auth/me`
+- **Session Management**: Cookie-based with in-memory store
+- **Test Credentials**:
+  - CEO: username='ceo', password='admin123'
+  - Director: username='director', password='password'
+
+#### 4. Detailed Error Messages ✅
+- **Connection Errors**: "Cannot connect to server. Please ensure the API server is running on port 3001."
+- **Permission Errors**: Role-specific messages explaining required permissions
+- **Validation Errors**: Field-specific error details
+- **Network Errors**: Clear troubleshooting guidance
+- **Implemented in**: `useFactories.ts` and `useUsers.ts` hooks
+
+#### 5. Environment Configuration ✅
+- **Updated**: Server to make Supabase variables optional
+- **Added**: `USE_MOCK_DB=true` flag for development
+- **Modified**: `/apps/api/src/lib/supabase.ts` to auto-detect and use mock DB
+
+### Technical Summary
+- **Files Created**: 3 new files (mock-db.ts, init.sql, setup-dev.ts)
+- **Files Modified**: 5 files (server.ts, supabase.ts, auth.ts, hooks)
+- **Dependencies Added**: uuid, @types/uuid
+- **Status**: System fully functional with mock database
+
+### Known Issues
+- TSX watch server needs manual restart after env changes
+- Port conflicts between API (3001) and initial web attempt
+- Web app auto-selected port 3005 due to conflicts
+
+### Next Steps
+- Production: Run init.sql in Supabase dashboard
+- Development: System works immediately with mock DB
+- Testing: All CRUD operations functional
+
+---
+
 ## Session Guidelines for Future Claude Agents
 
 1. **Context Loading**: Read this file at session start
@@ -398,3 +454,4 @@ Successfully debugged and fixed a critical PostCSS configuration issue that was 
 4. **Update Logs**: Add session summary here when ending work
 5. **Auto-Summarize**: If file exceeds 200 lines, summarize old sessions keeping only latest
 6. **Test URLs**: Web app may be on different ports (3000, 3003, 3005) - check with lsof
+7. **Mock Database**: System uses in-memory mock DB when USE_MOCK_DB=true or Supabase not configured

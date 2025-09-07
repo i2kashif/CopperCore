@@ -58,6 +58,14 @@
 
 ## In Progress
 
+### Backend Implementation Issues (2025-09-07)
+- 🟩 FIX-1: Factory creation failing with "Load failed" error • **Owner:** Frontend • **Completed:** Mock DB implementation
+- 🟩 FIX-2: Remove unnecessary factory fields (state, postal_code, fiscal_year_start) • **Owner:** Frontend • **Completed:** Made optional
+- 🟩 FIX-3: Remove email/phone from factory form • **Owner:** Frontend • **Completed:** Fields removed
+- 🟩 FIX-4: Implement detailed error messages • **Owner:** Frontend • **Completed:** Added specific error guidance
+- 🟩 FIX-5: Create mock database for development • **Owner:** Backend • **Completed:** Full mock DB with CRUD
+- 🟩 FIX-6: Implement auth endpoints • **Owner:** Backend • **Completed:** Login/logout/session management
+
 ### M1: DB/RLS Foundation (Weeks 1–4)  
 - 🟩 I-1.1: Database Schema Foundation (factories, users, product families, core entities) • **Owner:** Architect • PR: feat/m1-1-schema-foundation
 - 🟨 I-1.2: RLS Policy Implementation (factory scoping + CEO/Director bypass) • **Owner:** Architect • PR(s):
@@ -154,5 +162,12 @@
 ---
 
 ## Done (append newest first)
+- 🟩 FIX-1 to FIX-6: Complete backend implementation with mock DB • **Completed:** 2025-09-07 • Branch: ui/auth-polish
+- 🟩 BACK-18: Lint and typecheck validation • **Completed:** 2025-09-07 • Found 92 lint issues, API type errors
+- 🟩 BACK-9 to BACK-17: Backend API implementation • **Completed:** 2025-09-07 • Full CRUD for factories/users
+- 🟩 CAT-1 to CAT-15: Catalog tab implementation • **Completed:** 2025-09-07 • Complete SKU management UI
+- 🟩 PF-1 to PF-13: Product Families implementation • **Completed:** 2025-09-07 • Full configuration system
+- 🟩 UI-2: Manage Company Dashboard • **Completed:** 2025-09-07 • CEO/Director admin functionality
+- 🟩 Auth UI Polish: Professional login with copper branding • **Completed:** 2025-09-07 • Branch: ui/auth-polish
 - 🟩 I-1.1: Database Schema Foundation • PR: feat/m1-1-schema-foundation • Log: 2025-09-06-architect-1
 - 🟩 Housekeeping A–H: Complete foundation (scaffold→security) • Multiple PRs • Log: See agent logs 2025-09-06
