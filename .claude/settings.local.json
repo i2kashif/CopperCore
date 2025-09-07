@@ -46,7 +46,8 @@
       "Bash(find:*)",
       "Bash(pnpm -w lint --filter=apps/web)",
       "Read(//tmp/**)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(CI=1 lsof -i :3001)"
     ],
     "deny": [],
     "ask": []
