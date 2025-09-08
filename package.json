@@ -7,5 +7,31 @@
   "engines": {
     "node": ">=18.0.0",
     "pnpm": ">=8.0.0"
+  },
+  "scripts": {
+    "dev": "echo '🚧 Development server not yet configured'",
+    "build": "echo '🏗️ Build script not yet configured'",
+    "preview": "echo '👀 Preview script not yet configured'",
+    "lint": "echo '🔍 Linting not yet configured'",
+    "lint:fix": "echo '🔧 Lint fix not yet configured'",
+    "typecheck": "echo '📝 Type checking not yet configured'",
+    "test": "echo '🧪 Test runner not yet configured'",
+    "test:unit": "echo '🧪 Unit tests not yet configured'",
+    "test:e2e": "echo '🎭 E2E tests not yet configured'",
+    "test:rls": "tsx db/test/rls-tests.ts",
+    "db:generate": "echo '🔄 Migration generation not yet configured'",
+    "db:migrate": "echo '📊 Migration runner not yet configured'",
+    "db:apply": "echo '✅ Migration application not yet configured'",
+    "db:seed": "echo '🌱 Database seeding not yet configured'",
+    "db:reset": "echo '🔄 Database reset not yet configured'",
+    "ci": "echo '🤖 CI pipeline runner not yet configured'"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.0"
   }
 }
