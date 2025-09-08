@@ -1,0 +1,65 @@
+{
+  "mcpServers": {
+    "fs_local": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "/Users/ibrahimkashif/Desktop/CopperCore"
+      ],
+      "env": {
+        "MCP_FILESYSTEM_ALLOWED_DIRS": "/Users/ibrahimkashif/Desktop/CopperCore"
+      }
+    },
+    "magicui": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@magicuidesign/mcp@latest"
+      ]
+    },
+    "openmemory": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@peakmojo/mcp-openmemory@latest"
+      ],
+      "env": {
+        "OPENMEMORY_API_KEY": "om-hsr1zca58fpc57zrlqbxirrvfen2lrzo"
+      }
+    },
+    "supabase": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@supabase/mcp-server-supabase@latest",
+        "--project-ref=iefgojdnjsmsxrzoykol"
+      ],
+      "env": {
+        "SUPABASE_ACCESS_TOKEN": "sbp_cbd7f89b2f1e92ce2a18b966e625183ff547cae1"
+      }
+    },
+    "brave_control": {
+      "command": "node",
+      "args": [
+        "/Users/ibrahimkashif/Library/Application Support/Claude/Claude Extensions/ant.dir.gh.tariqalagha.brave-browser-control/server/index.js"
+      ]
+    },
+    "context7": {
+      "command": "node",
+      "args": [
+        "/Users/ibrahimkashif/Library/Application Support/Claude/Claude Extensions/context7/dist/index.js"
+      ]
+    },
+    "TestSprite": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@testsprite/testsprite-mcp@latest"
+      ],
+      "env": {
+        "API_KEY": "sk-user-vQol3yCeRq5naLiXMk1RvmS1JZ4721oB8OFMEkWFQF_bHQrr8OUZtRgRALpru25M1vwt-xfC1MiUaDqQkR_rrL_I3eNe0Bltq6k_SFpEVxIAfDyNjV-Dsjw9J8pEtsVnIbE"
+      }
+    }
+  }
+}

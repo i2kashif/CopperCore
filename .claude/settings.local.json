@@ -47,9 +47,33 @@
       "Bash(pnpm -w lint --filter=apps/web)",
       "Read(//tmp/**)",
       "Bash(curl:*)",
-      "Bash(CI=1 lsof -i :3001)"
+      "Bash(CI=1 lsof -i :3001)",
+      "Read(//Users/ibrahimkashif/**)",
+      "Bash(source:*)",
+      "Bash(echo:*)",
+      "Bash(/mcp)",
+      "Bash(claude mcp:*)",
+      "mcp__fs_local__list_allowed_directories",
+      "mcp__supabase__list_tables",
+      "mcp__magicui__getUIComponents",
+      "mcp__fs_local__list_directory",
+      "mcp__supabase__apply_migration",
+      "mcp__fs_local__read_text_file",
+      "mcp__supabase__list_migrations",
+      "mcp__supabase__get_project_url",
+      "Bash(pkill:*)"
     ],
     "deny": [],
     "ask": []
-  }
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "fs_local",
+    "magicui",
+    "supabase",
+    "openmemory",
+    "brave_control",
+    "context7",
+    "TestSprite"
+  ]
 }
