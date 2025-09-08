@@ -3,20 +3,17 @@
  * Defines types for authentication, authorization, and user management
  */
 
-import { User as SupabaseUser, Session } from '@supabase/supabase-js'
-
 export type UserRole = 'CEO' | 'Director' | 'FM' | 'FW' | 'Office'
 
 export interface User {
   id: string
-  auth_id: string | null
   username: string
   email: string | null
   role: UserRole
   full_name: string | null
   active: boolean
-  created_at: string
-  updated_at: string
+  created_at?: string
+  updated_at?: string
 }
 
 export interface UserFactoryLink {
@@ -38,7 +35,6 @@ export interface Factory {
 
 export interface AuthSession {
   user: User
-  supabaseSession: Session
   accessToken: string
   refreshToken: string
   expiresAt: number
@@ -95,9 +91,8 @@ export interface AuthJWTClaims {
 }
 
 export interface AuthConfig {
-  supabaseUrl: string
-  supabaseAnonKey: string
-  supabaseServiceKey: string
+  apiUrl: string
+  jwtSecret?: string
 }
 
 export interface AuthEventEmitter {

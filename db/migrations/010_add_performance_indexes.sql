@@ -10,12 +10,12 @@
 -- Index on selected_factory_id for efficient factory filtering
 -- This index is crucial for current_factory() function performance
 -- and for queries filtering by selected factory
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_user_settings_selected_factory_id 
+CREATE INDEX IF NOT EXISTS idx_user_settings_selected_factory_id 
     ON user_settings (selected_factory_id);
 
 -- Composite index on (selected_factory_id, user_id) for complex queries
 -- Useful for queries that need both factory and user context
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_user_settings_factory_user 
+CREATE INDEX IF NOT EXISTS idx_user_settings_factory_user 
     ON user_settings (selected_factory_id, user_id) 
     WHERE selected_factory_id IS NOT NULL;
 
@@ -25,21 +25,21 @@ CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_user_settings_factory_user
 
 -- Index on factory_id for efficient factory-based lookups
 -- Critical for user_accessible_factories() function and factory filtering
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_user_factory_links_factory_id 
+CREATE INDEX IF NOT EXISTS idx_user_factory_links_factory_id 
     ON user_factory_links (factory_id);
 
 -- Index on user_id for efficient user-based lookups
 -- Important for checking user permissions and access
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_user_factory_links_user_id 
+CREATE INDEX IF NOT EXISTS idx_user_factory_links_user_id 
     ON user_factory_links (user_id);
 
 -- Composite index on (factory_id, user_id) for permission checks
 -- Optimizes queries that check if specific user has access to specific factory
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_user_factory_links_factory_user 
+CREATE INDEX IF NOT EXISTS idx_user_factory_links_factory_user 
     ON user_factory_links (factory_id, user_id);
 
 -- Index on created_by for audit queries
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_user_factory_links_created_by 
+CREATE INDEX IF NOT EXISTS idx_user_factory_links_created_by 
     ON user_factory_links (created_by) 
     WHERE created_by IS NOT NULL;
 
@@ -49,18 +49,18 @@ CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_user_factory_links_created_by
 
 -- Composite index on (role, active) for role-based filtering
 -- Optimizes queries that filter users by role and active status
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_users_role_active 
+CREATE INDEX IF NOT EXISTS idx_users_role_active 
     ON users (role, active);
 
 -- Partial index on active users only
 -- Most queries focus on active users, so this saves space and improves performance
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_users_active_only 
+CREATE INDEX IF NOT EXISTS idx_users_active_only 
     ON users (id, role, username) 
     WHERE active = true;
 
 -- Index on auth_id for auth sync operations
 -- Critical for JWT-based user lookups
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_users_auth_id_active 
+CREATE INDEX IF NOT EXISTS idx_users_auth_id_active 
     ON users (auth_id, active) 
     WHERE auth_id IS NOT NULL;
 
@@ -70,12 +70,12 @@ CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_users_auth_id_active
 
 -- Composite index on (active, code) for active factory lookups by code
 -- Optimizes queries that search for active factories by code
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_factories_active_code 
+CREATE INDEX IF NOT EXISTS idx_factories_active_code 
     ON factories (active, code) 
     WHERE active = true;
 
 -- Partial index on active factories only with name for search
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_factories_active_name 
+CREATE INDEX IF NOT EXISTS idx_factories_active_name 
     ON factories (name) 
     WHERE active = true;
 
@@ -85,15 +85,14 @@ CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_factories_active_name
 
 -- Index to optimize jwt_user_id() lookups
 -- This helps with RLS policy performance
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_users_auth_id_lookup 
+CREATE INDEX IF NOT EXISTS idx_users_auth_id_lookup 
     ON users (auth_id) 
     WHERE auth_id IS NOT NULL AND active = true;
 
 -- Index to optimize user_accessible_factories() queries
 -- Composite index for efficient factory access checks
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_user_factory_access_optimization 
-    ON user_factory_links (user_id, factory_id) 
-    INCLUDE (created_at);
+CREATE INDEX IF NOT EXISTS idx_user_factory_access_optimization 
+    ON user_factory_links (user_id, factory_id);
 
 -- ==========================================
 -- STATISTICS AND MAINTENANCE

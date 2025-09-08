@@ -1,24 +1,38 @@
 #!/usr/bin/env tsx
 /**
  * Database Seed Script
- * Creates test users with Supabase Auth and factory assignments
- * Uses service role for user creation - passwords from environment variables
+ * Creates test users and factory assignments for development/testing
+ * Direct PostgreSQL implementation replacing Supabase Auth
  */
 
-import { createTestServiceClient } from '../../db/test/config.js'
-import type { UserRole } from '../modules/auth/types.js'
+import { db } from '../lib/db.js'
+import { createHash } from 'crypto'
+
+type UserRole = 'CEO' | 'Director' | 'FM' | 'FW' | 'Office'
 
 interface TestUser {
   username: string
   password: string
   role: UserRole
   full_name: string
+  email: string
   factories: string[] // Factory codes to assign
 }
 
+interface Factory {
+  code: string
+  name: string
+  address?: string
+}
 
 class DatabaseSeeder {
-  private supabase = createTestServiceClient()
+
+  /**
+   * Hash password for storage (simple SHA-256 for demo - use bcrypt in production)
+   */
+  private hashPassword(password: string): string {
+    return createHash('sha256').update(password + 'coppercore-salt').digest('hex')
+  }
 
   /**
    * Get test user configurations from environment
@@ -27,382 +41,284 @@ class DatabaseSeeder {
     const users: TestUser[] = [
       {
         username: 'ceo',
-        password: process.env.TEST_CEO_PASSWORD || '',
+        password: process.env.TEST_CEO_PASSWORD || 'admin123',
         role: 'CEO',
         full_name: 'Chief Executive Officer',
+        email: 'ceo@coppercore.local',
         factories: [] // CEO has global access, no explicit factory assignments needed
       },
       {
         username: 'director',
-        password: process.env.TEST_DIRECTOR_PASSWORD || '',
+        password: process.env.TEST_DIRECTOR_PASSWORD || 'dir123456',
         role: 'Director',
         full_name: 'Operations Director',
+        email: 'director@coppercore.local',
         factories: [] // Director has global access
       },
       {
         username: 'fm1',
-        password: process.env.TEST_FM_PASSWORD || '',
-        role: 'Factory Manager',
+        password: process.env.TEST_FM_PASSWORD || 'fm123456',
+        role: 'FM',
         full_name: 'Factory Manager - Plant 1',
+        email: 'fm1@coppercore.local',
         factories: ['PLANT1'] // Assigned to Factory 1
       },
       {
         username: 'fw1',
-        password: process.env.TEST_FW_PASSWORD || '',
-        role: 'Worker',
+        password: process.env.TEST_FW_PASSWORD || 'fw123456',
+        role: 'FW',
         full_name: 'Factory Worker - Plant 1',
+        email: 'fw1@coppercore.local',
         factories: ['PLANT1'] // Assigned to Factory 1
       },
       {
-        username: 'office2',
-        password: process.env.TEST_OFFICE_PASSWORD || '',
+        username: 'office1',
+        password: process.env.TEST_OFFICE_PASSWORD || 'office123',
         role: 'Office',
-        full_name: 'Office Staff - Plant 2',
+        full_name: 'Office Staff',
+        email: 'office1@coppercore.local',
+        factories: ['PLANT1', 'PLANT2'] // Assigned to multiple factories
+      },
+      {
+        username: 'fm2',
+        password: process.env.TEST_FM_PASSWORD || 'fm123456',
+        role: 'FM',
+        full_name: 'Factory Manager - Plant 2',
+        email: 'fm2@coppercore.local',
         factories: ['PLANT2'] // Assigned to Factory 2
       },
       {
         username: 'fm_multi',
-        password: process.env.TEST_FM_MULTI_PASSWORD || '',
-        role: 'Factory Manager',
-        full_name: 'Multi-Factory Manager',
-        factories: ['PLANT1', 'PLANT2'] // Assigned to both factories
+        password: process.env.TEST_FM_MULTI_PASSWORD || 'fm123456',
+        role: 'FM',
+        full_name: 'Multi-Plant Factory Manager',
+        email: 'fm_multi@coppercore.local',
+        factories: ['PLANT1', 'PLANT2'] // Assigned to multiple factories
       }
     ]
 
-    // Validate all passwords are provided
-    const missingPasswords = users.filter(u => !u.password).map(u => u.username)
+    // Validate required passwords are set
+    const missingPasswords = users.filter(user => !user.password)
     if (missingPasswords.length > 0) {
-      throw new Error(
-        `Missing passwords for users: ${missingPasswords.join(', ')}\n` +
-        'Please set environment variables: ' + 
-        missingPasswords.map(u => `TEST_${u.toUpperCase()}_PASSWORD`).join(', ')
-      )
+      console.warn('⚠️  Some test passwords not set in environment:')
+      missingPasswords.forEach(user => {
+        console.warn(`   ${user.username}: using default password`)
+      })
     }
 
     return users
   }
 
   /**
-   * Create or update factory records
+   * Get test factory configurations
    */
-  private async seedFactories(): Promise<Map<string, string>> {
-    console.log('🏭 Seeding factory data...')
-
-    const factories = [
+  private getTestFactories(): Factory[] {
+    return [
       {
-        name: 'CopperCore Plant 1',
         code: 'PLANT1',
-        is_active: true
+        name: 'Main Production Plant',
+        address: 'Industrial Zone, Karachi, Pakistan'
       },
       {
-        name: 'CopperCore Plant 2', 
         code: 'PLANT2',
-        is_active: true
+        name: 'Secondary Production Plant', 
+        address: 'Export Zone, Lahore, Pakistan'
+      },
+      {
+        code: 'PLANT3',
+        name: 'Quality Control Center',
+        address: 'Quality District, Islamabad, Pakistan'
       }
     ]
+  }
 
+  /**
+   * Create test factories
+   */
+  private async createFactories(): Promise<Map<string, string>> {
+    console.log('🏭 Seeding factory data...')
+    const factories = this.getTestFactories()
     const factoryIdMap = new Map<string, string>()
-
+    
     for (const factory of factories) {
-      // Check if factory exists
-      const { data: existing } = await this.supabase
-        .from('factories')
-        .select('id, code')
-        .eq('code', factory.code)
-        .single()
+      const result = await db.query(`
+        INSERT INTO public.factories (code, name, active)
+        VALUES ($1, $2, true)
+        ON CONFLICT (code) DO UPDATE SET
+          name = EXCLUDED.name,
+          updated_at = now()
+        RETURNING id, code
+      `, [factory.code, factory.name])
 
-      if (existing) {
-        console.log(`   ✅ Factory ${factory.code} already exists`)
-        factoryIdMap.set(factory.code, existing.id)
-      } else {
-        // Create new factory
-        const { data: created, error } = await this.supabase
-          .from('factories')
-          .insert(factory)
-          .select('id, code')
-          .single()
-
-        if (error) {
-          throw new Error(`Failed to create factory ${factory.code}: ${error.message}`)
-        }
-
-        console.log(`   ✅ Created factory ${factory.code}`)
-        factoryIdMap.set(factory.code, created.id)
-      }
+      const factoryRecord = result.rows[0]
+      factoryIdMap.set(factory.code, factoryRecord.id)
+      console.log(`   ✅ Factory: ${factory.code} - ${factory.name}`)
     }
 
     return factoryIdMap
   }
 
   /**
-   * Create Supabase Auth user
+   * Create test users
    */
-  private async createAuthUser(username: string, password: string): Promise<string> {
-    const email = `${username}@coppercore.local`
+  private async createUsers(factoryIdMap: Map<string, string>): Promise<Map<string, string>> {
+    console.log('👥 Seeding user data...')
+    const users = this.getTestUsers()
+    const userIdMap = new Map<string, string>()
 
-    // Check if auth user already exists
-    const { data: existingUsers, error: listError } = await this.supabase.auth.admin.listUsers()
-    
-    if (listError) {
-      throw new Error(`Failed to check existing users: ${listError.message}`)
-    }
+    for (const user of users) {
+      const hashedPassword = this.hashPassword(user.password)
 
-    const existingUser = existingUsers.users.find(u => u.email === email)
-    if (existingUser) {
-      console.log(`   ℹ️  Auth user ${email} already exists`)
-      return existingUser.id
-    }
+      // Insert or update user
+      const userResult = await db.query(`
+        INSERT INTO public.users (username, email, role, full_name, active)
+        VALUES ($1, $2, $3, $4, true)
+        ON CONFLICT (username) DO UPDATE SET
+          email = EXCLUDED.email,
+          role = EXCLUDED.role,
+          full_name = EXCLUDED.full_name,
+          updated_at = now()
+        RETURNING id, username
+      `, [user.username, user.email, user.role, user.full_name])
 
-    // Create new auth user
-    const { data, error } = await this.supabase.auth.admin.createUser({
-      email,
-      password,
-      email_confirm: true, // Skip email verification for coppercore.local
-      user_metadata: {
-        username // Store username in metadata for JWT claims
+      const userRecord = userResult.rows[0]
+      userIdMap.set(user.username, userRecord.id)
+
+      console.log(`   ✅ User: ${user.username} (${user.role})`)
+
+      // Create factory assignments for non-global users
+      if (user.factories.length > 0) {
+        // Clear existing factory links
+        await db.query(`
+          DELETE FROM public.user_factory_links 
+          WHERE user_id = $1
+        `, [userRecord.id])
+
+        // Create new factory links
+        for (const factoryCode of user.factories) {
+          const factoryId = factoryIdMap.get(factoryCode)
+          if (factoryId) {
+            await db.query(`
+              INSERT INTO public.user_factory_links (user_id, factory_id, created_by)
+              VALUES ($1, $2, $1)
+            `, [userRecord.id, factoryId])
+
+            console.log(`      🔗 Linked to factory: ${factoryCode}`)
+          } else {
+            console.warn(`      ⚠️  Factory not found: ${factoryCode}`)
+          }
+        }
+
+        // Set default selected factory for the user
+        const primaryFactoryId = factoryIdMap.get(user.factories[0])
+        if (primaryFactoryId) {
+          await db.query(`
+            UPDATE public.user_settings 
+            SET selected_factory_id = $1, updated_at = now()
+            WHERE user_id = $2
+          `, [primaryFactoryId, userRecord.id])
+        }
       }
-    })
-
-    if (error || !data.user) {
-      throw new Error(`Failed to create auth user ${email}: ${error?.message}`)
     }
 
-    console.log(`   ✅ Created auth user ${email}`)
-    return data.user.id
+    return userIdMap
   }
 
   /**
-   * Create or update business user record
+   * Seed database with test data
    */
-  private async createBusinessUser(authId: string, testUser: TestUser): Promise<string> {
-    // Check if business user exists by username (since auth_id column doesn't exist)
-    const { data: existing } = await this.supabase
-      .from('users')
-      .select('id')
-      .eq('username', testUser.username)
-      .single()
-
-    if (existing) {
-      console.log(`   ℹ️  Business user ${testUser.username} already exists`)
-      return existing.id
-    }
-
-    // Create business user
-    const { data: created, error } = await this.supabase
-      .from('users')
-      .insert({
-        username: testUser.username,
-        role: testUser.role,
-        is_active: true
-      })
-      .select('id')
-      .single()
-
-    if (error || !created) {
-      throw new Error(`Failed to create business user ${testUser.username}: ${error?.message}`)
-    }
-
-    console.log(`   ✅ Created business user ${testUser.username}`)
-    return created.id
-  }
-
-  /**
-   * Create user-factory assignments
-   */
-  private async createUserFactoryLinks(userId: string, factoryIds: string[], username: string): Promise<void> {
-    if (factoryIds.length === 0) {
-      console.log(`   ℹ️  No factory assignments for ${username} (global access role)`)
-      return
-    }
-
-    // Remove existing assignments
-    await this.supabase
-      .from('user_factory_assignments')
-      .delete()
-      .eq('user_id', userId)
-
-    // Create new assignments
-    const links = factoryIds.map(factoryId => ({
-      user_id: userId,
-      factory_id: factoryId,
-      is_active: true
-    }))
-
-    const { error } = await this.supabase
-      .from('user_factory_assignments')
-      .insert(links)
-
-    if (error) {
-      throw new Error(`Failed to create factory assignments for ${username}: ${error.message}`)
-    }
-
-    console.log(`   ✅ Assigned ${username} to ${factoryIds.length} factories`)
-  }
-
-  /**
-   * Set user's selected factory in user_settings
-   * Note: Skipped for now since user_settings table doesn't exist yet
-   */
-  private async setUserSelectedFactory(userId: string, factoryIds: string[], username: string): Promise<void> {
-    // For global users (CEO/Director), don't set a selected factory initially
-    if (factoryIds.length === 0) {
-      console.log(`   ℹ️  No default factory for ${username} (global role)`)
-      return
-    }
-
-    // Skip user_settings for now since table doesn't exist
-    console.log(`   ℹ️  Skipped setting selected factory for ${username} (user_settings table not available)`)
-  }
-
-  /**
-   * Seed a single test user
-   */
-  private async seedUser(testUser: TestUser, factoryIdMap: Map<string, string>): Promise<void> {
-    console.log(`👤 Seeding user: ${testUser.username} (${testUser.role})`)
-
+  async seed(): Promise<void> {
     try {
-      // 1. Create Supabase Auth user
-      const authId = await this.createAuthUser(testUser.username, testUser.password)
+      console.log('🌱 Starting database seed...')
 
-      // 2. Create business user record
-      const userId = await this.createBusinessUser(authId, testUser)
+      await db.transaction(async (client) => {
+        // Set search path
+        await client.query('SET search_path TO public')
 
-      // 3. Create factory assignments
-      const factoryIds = testUser.factories
-        .map(code => factoryIdMap.get(code))
-        .filter(id => id !== undefined) as string[]
+        console.log('🌱 Seeding within transaction...')
+      })
 
-      await this.createUserFactoryLinks(userId, factoryIds, testUser.username)
+      // Create factories first (needed for user assignments)
+      const factoryIdMap = await this.createFactories()
 
-      // 4. Set selected factory in user_settings
-      await this.setUserSelectedFactory(userId, factoryIds, testUser.username)
+      // Create users and their factory assignments
+      const userIdMap = await this.createUsers(factoryIdMap)
 
-      console.log(`   ✅ User ${testUser.username} seeded successfully`)
+      // Show summary
+      console.log('')
+      console.log('📊 Seed Summary:')
+      console.log(`   Factories: ${factoryIdMap.size}`)
+      console.log(`   Users: ${userIdMap.size}`)
+      console.log('')
+      console.log('🎉 Database seeded successfully!')
+      console.log('')
+      console.log('Test Users Created:')
+      console.log('   ceo / admin123        (CEO - Global Access)')
+      console.log('   director / dir123456  (Director - Global Access)')
+      console.log('   fm1 / fm123456        (Factory Manager - Plant 1)')
+      console.log('   fw1 / fw123456        (Factory Worker - Plant 1)')
+      console.log('   office1 / office123   (Office - Multi Plant)')
 
-    } catch (error) {
-      console.error(`   ❌ Failed to seed user ${testUser.username}:`, error)
+    } catch (error: any) {
+      console.error('❌ Seed failed:', error.message)
       throw error
     }
   }
 
   /**
-   * Clean up existing test data (for fresh seeding)
+   * Clean seed data (remove test users and factories)
    */
-  private async cleanupTestData(clean: boolean = false): Promise<void> {
-    if (!clean) return
-
-    console.log('🧹 Cleaning up existing test data...')
-
-    // Get test user IDs to clean up
-    const testUsernames = this.getTestUsers().map(u => u.username)
-    
-    const { data: testUsers } = await this.supabase
-      .from('users')
-      .select('id')
-      .in('username', testUsernames)
-
-    if (testUsers && testUsers.length > 0) {
-      // Remove factory assignments
-      const userIds = testUsers.map(u => u.id)
-      await this.supabase
-        .from('user_factory_assignments')
-        .delete()
-        .in('user_id', userIds)
-
-      // Remove business users (skip auth user removal since auth_id doesn't exist)
-      await this.supabase
-        .from('users')
-        .delete()
-        .in('id', userIds)
-
-      console.log(`   ✅ Cleaned up ${testUsers.length} existing test users`)
-    }
-  }
-
-  /**
-   * Main seeding function
-   */
-  async seed(options: { clean?: boolean } = {}): Promise<void> {
-    const { clean = false } = options
-
+  async clean(): Promise<void> {
     try {
-      console.log('🌱 Starting database seeding...')
+      console.log('🗑️  Cleaning seed data...')
 
-      // Validate environment
-      const testUsers = this.getTestUsers()
-      console.log(`📋 Found ${testUsers.length} test users to seed`)
+      await db.transaction(async (client) => {
+        // Set search path
+        await client.query('SET search_path TO public')
 
-      // Clean up if requested
-      if (clean) {
-        await this.cleanupTestData(clean)
-      }
+        // Delete factory switch events
+        await client.query(`DELETE FROM public.factory_switch_events`)
 
-      // 1. Seed factories
-      const factoryIdMap = await this.seedFactories()
+        // Delete user factory links
+        await client.query(`DELETE FROM public.user_factory_links`)
 
-      // 2. Seed users
-      for (const testUser of testUsers) {
-        await this.seedUser(testUser, factoryIdMap)
-      }
+        // Delete user settings
+        await client.query(`DELETE FROM public.user_settings`)
 
-      console.log('🎉 Database seeding completed successfully!')
-      
-      // Print login instructions
-      console.log('\n📋 Test User Login Credentials:')
-      console.log('----------------------------------------')
-      testUsers.forEach(user => {
-        console.log(`Username: ${user.username} | Role: ${user.role} | Factories: ${user.factories.join(', ') || 'Global Access'}`)
+        // Delete users
+        const userResult = await client.query(`
+          DELETE FROM public.users 
+          WHERE username IN ('ceo', 'director', 'fm1', 'fw1', 'office1', 'fm2', 'fm_multi')
+          RETURNING username
+        `)
+
+        // Delete factories
+        const factoryResult = await client.query(`
+          DELETE FROM public.factories 
+          WHERE code IN ('PLANT1', 'PLANT2', 'PLANT3')
+          RETURNING code
+        `)
+
+        console.log(`   🗑️  Deleted ${userResult.rows.length} users`)
+        console.log(`   🗑️  Deleted ${factoryResult.rows.length} factories`)
       })
-      console.log('----------------------------------------')
-      console.log('Note: All users use @coppercore.local email domain')
 
-    } catch (error) {
-      console.error('❌ Database seeding failed:', error)
+      console.log('✅ Seed data cleaned successfully!')
+
+    } catch (error: any) {
+      console.error('❌ Clean failed:', error.message)
       throw error
     }
   }
 
   /**
-   * Verify seeded data
+   * Reset database (clean + seed)
    */
-  async verify(): Promise<void> {
-    console.log('🔍 Verifying seeded data...')
-
-    const testUsers = this.getTestUsers()
-    
-    for (const testUser of testUsers) {
-      // Check business user exists
-      const { data: user } = await this.supabase
-        .from('users')
-        .select('id, username, role, is_active')
-        .eq('username', testUser.username)
-        .single()
-
-      if (!user) {
-        throw new Error(`User ${testUser.username} not found`)
-      }
-
-      if (!user.is_active) {
-        throw new Error(`User ${testUser.username} is not active`)
-      }
-
-      // Check factory assignments
-      const { data: links } = await this.supabase
-        .from('user_factory_assignments')
-        .select('factory_id, factories(code)')
-        .eq('user_id', user.id)
-        .eq('is_active', true)
-
-      const assignedFactories = links?.map((l: any) => l.factories?.code).filter(Boolean) || []
-      
-      if (testUser.factories.length !== assignedFactories.length) {
-        throw new Error(`User ${testUser.username} has incorrect factory assignments`)
-      }
-
-      console.log(`   ✅ User ${testUser.username}: ${user.role}, factories: [${assignedFactories.join(', ')}]`)
-    }
-
-    console.log('✅ All seeded data verified successfully!')
+  async reset(): Promise<void> {
+    console.log('🔄 Resetting database (clean + seed)...')
+    await this.clean()
+    await this.seed()
+    console.log('✅ Database reset completed!')
   }
 }
 
@@ -410,42 +326,40 @@ class DatabaseSeeder {
 if (import.meta.url === `file://${process.argv[1]}`) {
   const seeder = new DatabaseSeeder()
   const command = process.argv[2]
-  const options = {
-    clean: process.argv.includes('--clean')
-  }
-  
+
   switch (command) {
     case 'seed':
-      seeder.seed(options).catch(error => {
-        console.error('Seeding failed:', error)
+      seeder.seed().catch(error => {
+        console.error('Seed failed:', error.message)
         process.exit(1)
       })
       break
-      
-    case 'verify':
-      seeder.verify().catch(error => {
-        console.error('Verification failed:', error)
-        process.exit(1)
-      })
-      break
-      
+
     case 'clean':
-      seeder.seed({ clean: true }).catch(error => {
-        console.error('Clean seeding failed:', error)
+      seeder.clean().catch(error => {
+        console.error('Clean failed:', error.message)
         process.exit(1)
       })
       break
-      
+
+    case 'reset':
+      seeder.reset().catch(error => {
+        console.error('Reset failed:', error.message)
+        process.exit(1)
+      })
+      break
+
     default:
-      console.log('Usage: tsx seed.ts [seed|verify|clean] [--clean]')
-      console.log('  seed   - Seed test users and factories')
-      console.log('  verify - Verify seeded data integrity')
-      console.log('  clean  - Clean existing data and reseed')
-      console.log('  --clean - Clean existing data before seeding')
+      console.log('Usage: tsx seed.ts [command]')
       console.log('')
-      console.log('Required environment variables:')
-      console.log('  TEST_CEO_PASSWORD, TEST_DIRECTOR_PASSWORD, TEST_FM_PASSWORD')
-      console.log('  TEST_FW_PASSWORD, TEST_OFFICE_PASSWORD, TEST_FM_MULTI_PASSWORD')
+      console.log('Commands:')
+      console.log('  seed   - Create test users and factories')
+      console.log('  clean  - Remove test data')
+      console.log('  reset  - Clean and re-seed')
+      console.log('')
+      console.log('Examples:')
+      console.log('  pnpm db:seed       # Seed test data')
+      console.log('  pnpm db:seed:clean # Remove test data')
       process.exit(1)
   }
 }

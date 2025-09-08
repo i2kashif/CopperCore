@@ -1,19 +1,21 @@
 /**
  * Auth Service
  * Handles authentication, session management, and factory switching
+ * Uses PostgreSQL backend instead of Supabase
  */
 
-import { createSupabaseClient, createSupabaseServiceClient, AUTH_CONFIG } from './config.js'
+import { apiClient } from './apiClient.js'
+import { AUTH_CONFIG } from './config.js'
 import type { 
   LoginCredentials, 
   AuthResponse, 
   AuthSession, 
   User, 
-  UserFactoryLink,
   Factory,
   FactorySwitchEvent,
   AuthEventEmitter 
 } from './types.js'
+
 // Simple browser-compatible EventEmitter
 class SimpleEventEmitter {
   private events: Record<string, Function[]> = {}
@@ -37,24 +39,8 @@ class SimpleEventEmitter {
 }
 
 class AuthService {
-  private supabase = createSupabaseClient()
-  private serviceClient = createSupabaseServiceClient()
   private eventEmitter = new SimpleEventEmitter() as AuthEventEmitter
   private currentSession: AuthSession | null = null
-
-  /**
-   * Convert username to email format for Supabase Auth
-   */
-  private usernameToEmail(username: string): string {
-    return `${username}@${AUTH_CONFIG.EMAIL_DOMAIN}`
-  }
-
-  /**
-   * Convert email back to username
-   */
-  private emailToUsername(email: string): string {
-    return email.replace(`@${AUTH_CONFIG.EMAIL_DOMAIN}`, '')
-  }
 
   /**
    * Validate username format
@@ -67,7 +53,6 @@ class AuthService {
 
   /**
    * Login with username and password
-   * Converts username to username@coppercore.local format for Supabase
    */
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
     try {
@@ -83,71 +68,21 @@ class AuthService {
         }
       }
 
-      const email = this.usernameToEmail(credentials.username)
+      // Attempt login via API
+      const response = await apiClient.login(credentials)
 
-      // Attempt login with Supabase
-      const { data, error } = await this.supabase.auth.signInWithPassword({
-        email,
-        password: credentials.password
-      })
-
-      if (error) {
-        return {
-          session: null,
-          error: {
-            message: this.mapAuthErrorMessage(error.message),
-            name: error.name || 'AuthError',
-            status: error.status || 400
-          }
-        }
+      if (response.error) {
+        return response
       }
 
-      if (!data.session || !data.user) {
-        return {
-          session: null,
-          error: {
-            message: 'Login failed - no session created',
-            name: 'AuthError',
-            status: 400
-          }
-        }
+      if (response.session) {
+        this.currentSession = response.session
+        
+        // Set auth token for future API requests
+        apiClient.setAuthToken(response.session.accessToken)
       }
 
-      // Fetch user details from our users table by username
-      const user = await this.getUserByUsername(credentials.username)
-      if (!user) {
-        return {
-          session: null,
-          error: {
-            message: 'User account not found or inactive',
-            name: 'AuthError',
-            status: 404
-          }
-        }
-      }
-
-      if (!user.is_active) {
-        return {
-          session: null,
-          error: {
-            message: 'User account is disabled',
-            name: 'AuthError',
-            status: 403
-          }
-        }
-      }
-
-      // Create auth session
-      const session: AuthSession = {
-        user,
-        supabaseSession: data.session,
-        accessToken: data.session.access_token,
-        refreshToken: data.session.refresh_token,
-        expiresAt: data.session.expires_at || 0
-      }
-
-      this.currentSession = session
-      return { session, error: null }
+      return response
 
     } catch (err) {
       return {
@@ -166,10 +101,18 @@ class AuthService {
    */
   async logout(): Promise<{ error: any }> {
     try {
-      const { error } = await this.supabase.auth.signOut()
+      const result = await apiClient.logout()
+      
+      // Clear local session regardless of API response
       this.currentSession = null
-      return { error }
+      apiClient.setAuthToken(null)
+      
+      return result
     } catch (err) {
+      // Always clear local session on logout attempt
+      this.currentSession = null
+      apiClient.setAuthToken(null)
+      
       return {
         error: {
           message: err instanceof Error ? err.message : 'Logout failed',
@@ -185,36 +128,36 @@ class AuthService {
    */
   async refreshSession(): Promise<AuthResponse> {
     try {
-      const { data, error } = await this.supabase.auth.refreshSession()
-
-      if (error || !data.session) {
+      if (!this.currentSession?.refreshToken) {
         this.currentSession = null
+        apiClient.setAuthToken(null)
         return {
           session: null,
-          error: error ? {
-            message: error.message,
-            name: error.name || 'AuthError',
-            status: error.status || 401,
-            code: error.code
-          } : { 
-            message: 'Session refresh failed', 
+          error: { 
+            message: 'No refresh token available', 
             name: 'AuthError', 
             status: 401 
           }
         }
       }
 
-      if (this.currentSession) {
-        this.currentSession.supabaseSession = data.session
-        this.currentSession.accessToken = data.session.access_token
-        this.currentSession.refreshToken = data.session.refresh_token
-        this.currentSession.expiresAt = data.session.expires_at || 0
+      const response = await apiClient.refreshToken(this.currentSession.refreshToken)
+
+      if (response.error || !response.session) {
+        this.currentSession = null
+        apiClient.setAuthToken(null)
+        return response
       }
 
-      return { session: this.currentSession, error: null }
+      // Update current session
+      this.currentSession = response.session
+      apiClient.setAuthToken(response.session.accessToken)
+
+      return response
 
     } catch (err) {
       this.currentSession = null
+      apiClient.setAuthToken(null)
       return {
         session: null,
         error: {
@@ -239,52 +182,27 @@ class AuthService {
   sessionNeedsRefresh(): boolean {
     if (!this.currentSession) return false
     
-    const now = Math.floor(Date.now() / 1000)
-    const refreshThreshold = AUTH_CONFIG.REFRESH_THRESHOLD_MINUTES * 60
+    const now = Date.now()
+    const refreshThreshold = AUTH_CONFIG.REFRESH_THRESHOLD_MINUTES * 60 * 1000
     
     return (this.currentSession.expiresAt - now) <= refreshThreshold
   }
 
   /**
-   * Get user by username from our users table
-   * Since auth_id column doesn't exist yet, we'll match by username
-   */
-  private async getUserByUsername(username: string): Promise<User | null> {
-    const { data, error } = await this.supabase
-      .from('users')
-      .select('*')
-      .eq('username', username)
-      .single()
-
-    if (error || !data) return null
-    return data as User
-  }
-
-  /**
    * Get user's factory assignments
    */
-  async getUserFactories(userId: string): Promise<Factory[]> {
-    const { data, error } = await this.supabase
-      .from('user_factory_assignments')
-      .select(`
-        factory_id,
-        factories (
-          id,
-          name,
-          code,
-          is_active,
-          created_at,
-          updated_at
-        )
-      `)
-      .eq('user_id', userId)
-      .eq('is_active', true)
+  async getUserFactories(): Promise<Factory[]> {
+    if (!this.currentSession) {
+      return []
+    }
 
-    if (error || !data) return []
-
-    return data
-      .map((link: any) => link.factories)
-      .filter((factory: any) => factory && factory.is_active) as Factory[]
+    try {
+      const result = await apiClient.getUserFactories()
+      return result.error ? [] : result.factories
+    } catch (error) {
+      console.error('Failed to get user factories:', error)
+      return []
+    }
   }
 
   /**
@@ -297,45 +215,23 @@ class AuthService {
         return { success: false, error: 'No active session' }
       }
 
-      // Verify user has access to the factory
-      const userFactories = await this.getUserFactories(userId)
-      const hasAccess = userFactories.some(f => f.id === factoryId)
+      const result = await apiClient.switchFactory(factoryId)
+      
+      if (result.success) {
+        // Emit factory switch event for realtime updates
+        const switchEvent: FactorySwitchEvent = {
+          type: 'factory_switch',
+          userId,
+          fromFactoryId: null, // Could track previous factory if needed
+          toFactoryId: factoryId,
+          username: this.currentSession.user.username,
+          timestamp: new Date().toISOString()
+        }
 
-      if (!hasAccess) {
-        return { success: false, error: 'Access denied to factory' }
+        this.eventEmitter.emit('factory_switch', switchEvent)
       }
 
-      // For CEO and Director roles, allow access to any factory without explicit assignment
-      const user = this.currentSession.user
-      const hasGlobalAccess = user.role === 'CEO' || user.role === 'Director'
-
-      if (!hasAccess && !hasGlobalAccess) {
-        return { success: false, error: 'User does not have access to this factory' }
-      }
-
-      // Call the factory switch function (this updates user context server-side)
-      const { data, error } = await this.supabase.rpc('switch_factory_context', {
-        p_user_id: userId,
-        p_factory_id: factoryId
-      })
-
-      if (error) {
-        return { success: false, error: error.message }
-      }
-
-      // Emit factory switch event for realtime updates
-      const switchEvent: FactorySwitchEvent = {
-        type: 'factory_switch',
-        userId,
-        fromFactoryId: null, // Could track previous factory if needed
-        toFactoryId: factoryId,
-        username: user.username,
-        timestamp: new Date().toISOString()
-      }
-
-      this.eventEmitter.emit('factory_switch', switchEvent)
-
-      return { success: true }
+      return result
 
     } catch (err) {
       return {
@@ -346,25 +242,78 @@ class AuthService {
   }
 
   /**
-   * Map Supabase auth errors to user-friendly messages
+   * Restore session from stored tokens
    */
-  private mapAuthErrorMessage(errorMessage: string): string {
-    const lowerMessage = errorMessage.toLowerCase()
-    
-    if (lowerMessage.includes('invalid login credentials')) {
-      return 'Invalid username or password'
+  async restoreSession(accessToken: string, refreshToken: string, user: User, expiresAt: number): Promise<AuthResponse> {
+    try {
+      // Create session object
+      const session: AuthSession = {
+        user,
+        accessToken,
+        refreshToken,
+        expiresAt
+      }
+
+      // Check if token is expired or needs refresh
+      const now = Date.now()
+      if (expiresAt <= now) {
+        // Token is expired, try to refresh
+        return this.refreshSessionWithToken(refreshToken)
+      }
+
+      // Set current session and API token
+      this.currentSession = session
+      apiClient.setAuthToken(accessToken)
+
+      // Verify token is still valid by fetching user info
+      const userResult = await apiClient.getCurrentUser()
+      if (userResult.error) {
+        // Token is invalid, try to refresh
+        return this.refreshSessionWithToken(refreshToken)
+      }
+
+      return { session, error: null }
+
+    } catch (err) {
+      return {
+        session: null,
+        error: {
+          message: err instanceof Error ? err.message : 'Session restore failed',
+          name: 'AuthError',
+          status: 500
+        }
+      }
     }
-    if (lowerMessage.includes('too many requests')) {
-      return 'Too many login attempts. Please try again later.'
+  }
+
+  /**
+   * Refresh session using a refresh token
+   */
+  private async refreshSessionWithToken(refreshToken: string): Promise<AuthResponse> {
+    try {
+      const response = await apiClient.refreshToken(refreshToken)
+      
+      if (response.session) {
+        this.currentSession = response.session
+        apiClient.setAuthToken(response.session.accessToken)
+      } else {
+        this.currentSession = null
+        apiClient.setAuthToken(null)
+      }
+
+      return response
+    } catch (err) {
+      this.currentSession = null
+      apiClient.setAuthToken(null)
+      return {
+        session: null,
+        error: {
+          message: err instanceof Error ? err.message : 'Token refresh failed',
+          name: 'AuthError',
+          status: 500
+        }
+      }
     }
-    if (lowerMessage.includes('email not confirmed')) {
-      return 'Account not activated. Please contact your administrator.'
-    }
-    if (lowerMessage.includes('user not found')) {
-      return 'Invalid username or password'
-    }
-    
-    return errorMessage
   }
 
   /**

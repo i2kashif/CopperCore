@@ -1,13 +1,14 @@
 #!/usr/bin/env tsx
 /**
  * Migration Runner
- * Applies database migrations to Supabase in order
+ * Self-bootstrapping PostgreSQL migration runner with advisory locking
  */
 
 import { readFile, readdir } from 'fs/promises'
 import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
-import { createTestServiceClient } from '../../db/test/config.js'
+import { createHash } from 'crypto'
+import { db, getDatabaseUrl } from '../lib/db.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -20,55 +21,63 @@ interface MigrationFile {
 }
 
 interface MigrationRecord {
-  id: string
-  filename: string
-  applied_at: string
+  id: number
+  name: string
   checksum: string
+  applied_at: Date
 }
 
 class MigrationRunner {
-  private supabase = createTestServiceClient()
   private migrationsDir = join(__dirname, '../../db/migrations')
+  private lockId = BigInt('0x436f7070657243') // 'CopperC' in hex
+  private isLocked = false
 
   /**
-   * Initialize migration tracking table
+   * Bootstrap database: ensure schema and migration table exist
    */
-  private async initializeMigrationTable(): Promise<void> {
-    // First check if the table already exists
-    const { data, error } = await this.supabase
-      .from('migration_history')
-      .select('count', { count: 'exact', head: true })
-      .limit(0)
+  private async bootstrap(): Promise<void> {
+    console.log('🚀 Bootstrapping database...')
+    
+    // Log environment info
+    console.log(`📊 Database URL: ${getDatabaseUrl()}`)
+    
+    // Get current search path and database info
+    const info = await db.getInfo()
+    console.log(`🗄️  Database: ${info.database} | User: ${info.user}`)
+    console.log(`🔍 Search Path: ${info.search_path}`)
+    console.log(`📦 PostgreSQL: ${info.version}`)
 
-    if (!error) {
-      // Table exists, we're good
-      console.log('📋 Migration history table already exists')
-      return
-    }
-
-    // Table doesn't exist, we need to create it
-    // Since we can't execute DDL through the JS client in many configurations,
-    // we'll log the SQL that needs to be run manually
+    // Ensure we're working in public schema
+    await db.query('SET search_path TO public')
+    
+    // Ensure public schema exists
+    await db.query(`CREATE SCHEMA IF NOT EXISTS public`)
+    
+    // Create migration history table (idempotent)
     const createTableSQL = `
--- Migration history table - run this in Supabase SQL editor if not exists
-CREATE TABLE IF NOT EXISTS migration_history (
-  id SERIAL PRIMARY KEY,
-  filename VARCHAR(255) NOT NULL UNIQUE,
-  applied_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  checksum VARCHAR(64) NOT NULL,
-  CONSTRAINT chk_filename_format CHECK (filename ~ '^[0-9]{3}_[a-zA-Z0-9_-]+\\.sql$')
-);
-
-COMMENT ON TABLE migration_history IS 'Tracks applied database migrations';
-COMMENT ON COLUMN migration_history.filename IS 'Migration filename (e.g., 001_initial_schema.sql)';
-COMMENT ON COLUMN migration_history.applied_at IS 'Timestamp when migration was applied';
-COMMENT ON COLUMN migration_history.checksum IS 'SHA-256 hash of migration content for integrity verification';
-`
-
-    console.log('⚠️  migration_history table does not exist!')
-    console.log('📝 Please run this SQL in your Supabase dashboard SQL editor:')
-    console.log(createTableSQL)
-    throw new Error('migration_history table not found. Please create it manually using the SQL shown above.')
+      CREATE TABLE IF NOT EXISTS public.migration_history (
+        id SERIAL PRIMARY KEY,
+        name TEXT NOT NULL UNIQUE,
+        checksum TEXT NOT NULL,
+        applied_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+        CONSTRAINT chk_migration_name_format CHECK (name ~ '^[0-9]{3}_[a-zA-Z0-9_-]+\\.sql$')
+      )
+    `
+    
+    await db.query(createTableSQL)
+    
+    // Create index for performance
+    await db.query(`
+      CREATE INDEX IF NOT EXISTS idx_migration_history_name 
+      ON public.migration_history(name)
+    `)
+    
+    // Add comments
+    await db.query(`
+      COMMENT ON TABLE public.migration_history IS 'Tracks applied database migrations'
+    `)
+    
+    console.log('✅ Database bootstrap completed')
   }
 
   /**
@@ -101,78 +110,60 @@ COMMENT ON COLUMN migration_history.checksum IS 'SHA-256 hash of migration conte
    * Get applied migrations from database
    */
   private async getAppliedMigrations(): Promise<MigrationRecord[]> {
-    const { data, error } = await this.supabase
-      .from('migration_history')
-      .select('*')
-      .order('filename')
-
-    if (error) {
+    try {
+      const result = await db.query(`
+        SELECT id, name, checksum, applied_at 
+        FROM public.migration_history 
+        ORDER BY id
+      `)
+      
+      return result.rows
+    } catch (error: any) {
+      if (error.code === '42P01') {
+        // Table doesn't exist - return empty array, bootstrap will create it
+        return []
+      }
       throw new Error(`Failed to fetch applied migrations: ${error.message}`)
     }
-
-    return data || []
   }
 
   /**
    * Calculate SHA-256 checksum of file content
    */
-  private async calculateChecksum(content: string): Promise<string> {
-    const encoder = new TextEncoder()
-    const data = encoder.encode(content)
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data)
-    const hashArray = Array.from(new Uint8Array(hashBuffer))
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
+  private calculateChecksum(content: string): string {
+    return createHash('sha256').update(content, 'utf8').digest('hex')
   }
 
   /**
    * Apply a single migration
    */
   private async applyMigration(migration: MigrationFile): Promise<void> {
-    console.log(`Applying migration: ${migration.filename}`)
+    console.log(`🔄 Applying migration: ${migration.filename}`)
 
     try {
       // Read migration content
       const content = await readFile(migration.path, 'utf-8')
-      const checksum = await this.calculateChecksum(content)
+      const checksum = this.calculateChecksum(content)
 
-      // For now, we can't execute arbitrary SQL through the JavaScript client
-      // in many Supabase configurations. We'll record what needs to be applied
-      // and provide instructions for manual execution.
-      
-      console.log(`📋 Migration content for ${migration.filename}:`)
-      console.log('=' .repeat(50))
-      console.log(content)
-      console.log('=' .repeat(50))
-      
-      // Ask user if they want to mark this migration as applied
-      console.log(`⚠️  Cannot execute SQL automatically. Please:`)
-      console.log(`   1. Copy the SQL above`)
-      console.log(`   2. Run it in your Supabase dashboard SQL editor`)
-      console.log(`   3. Confirm it executed successfully`)
-      console.log(`   4. The migration will be recorded as applied`)
+      await db.transaction(async (client) => {
+        // Set search path for this transaction
+        await client.query('SET search_path TO public')
+        
+        // Execute the migration SQL
+        await client.query(content)
+        
+        // Record migration in history
+        await client.query(`
+          INSERT INTO public.migration_history (name, checksum)
+          VALUES ($1, $2)
+        `, [migration.filename, checksum])
+      })
 
-      // In a non-interactive environment, we'll just record it as applied
-      // This assumes the user will run the SQL manually
-      console.log(`📝 Recording migration ${migration.filename} as applied...`)
+      console.log(`✅ Applied migration: ${migration.filename}`)
 
-      // Record migration in history
-      const { error: recordError } = await this.supabase
-        .from('migration_history')
-        .insert({
-          filename: migration.filename,
-          checksum,
-          applied_at: new Date().toISOString()
-        })
-
-      if (recordError) {
-        throw new Error(`Failed to record migration: ${recordError.message}`)
-      }
-
-      console.log(`✅ Migration ${migration.filename} recorded as applied`)
-      console.log(`   Please ensure you have run the SQL manually!`)
-
-    } catch (error) {
-      console.error(`❌ Failed to process migration ${migration.filename}:`, error)
+    } catch (error: any) {
+      console.error(`❌ Failed to apply migration ${migration.filename}:`)
+      console.error(`   Error: ${error.message}`)
       throw error
     }
   }
@@ -182,7 +173,7 @@ COMMENT ON COLUMN migration_history.checksum IS 'SHA-256 hash of migration conte
    */
   private async verifyMigration(migration: MigrationFile, record: MigrationRecord): Promise<boolean> {
     const content = await readFile(migration.path, 'utf-8')
-    const currentChecksum = await this.calculateChecksum(content)
+    const currentChecksum = this.calculateChecksum(content)
     
     if (currentChecksum !== record.checksum) {
       console.warn(`⚠️  Migration ${migration.filename} has changed since it was applied!`)
@@ -195,6 +186,29 @@ COMMENT ON COLUMN migration_history.checksum IS 'SHA-256 hash of migration conte
   }
 
   /**
+   * Acquire advisory lock to prevent concurrent migrations
+   */
+  private async acquireLock(): Promise<void> {
+    const acquired = await db.acquireAdvisoryLock(this.lockId)
+    if (!acquired) {
+      throw new Error('Could not acquire migration lock. Another migration may be running.')
+    }
+    this.isLocked = true
+    console.log('🔒 Migration lock acquired')
+  }
+
+  /**
+   * Release advisory lock
+   */
+  private async releaseLock(): Promise<void> {
+    if (this.isLocked) {
+      await db.releaseAdvisoryLock(this.lockId)
+      this.isLocked = false
+      console.log('🔓 Migration lock released')
+    }
+  }
+
+  /**
    * Run all pending migrations
    */
   async runMigrations(options: { dryRun?: boolean; verify?: boolean } = {}): Promise<void> {
@@ -203,9 +217,19 @@ COMMENT ON COLUMN migration_history.checksum IS 'SHA-256 hash of migration conte
     try {
       console.log('🔄 Starting migration runner...')
 
-      // Initialize migration tracking
+      // Ensure DATABASE_URL is set
+      if (!process.env.DATABASE_URL && !process.env.DB_HOST) {
+        throw new Error('DATABASE_URL or DB_HOST must be set. Check your .env file.')
+      }
+
+      // Acquire lock for non-dry-run operations
       if (!dryRun) {
-        await this.initializeMigrationTable()
+        await this.acquireLock()
+      }
+
+      // Bootstrap database (idempotent)
+      if (!dryRun) {
+        await this.bootstrap()
       }
 
       // Get available and applied migrations
@@ -218,7 +242,7 @@ COMMENT ON COLUMN migration_history.checksum IS 'SHA-256 hash of migration conte
       // Create lookup map for applied migrations
       const appliedMap = new Map<string, MigrationRecord>()
       appliedMigrations.forEach(record => {
-        appliedMap.set(record.filename, record)
+        appliedMap.set(record.name, record)
       })
 
       // Verify applied migrations if requested
@@ -262,6 +286,9 @@ COMMENT ON COLUMN migration_history.checksum IS 'SHA-256 hash of migration conte
     } catch (error) {
       console.error('❌ Migration runner failed:', error)
       throw error
+    } finally {
+      // Always release lock
+      await this.releaseLock()
     }
   }
 
@@ -271,30 +298,68 @@ COMMENT ON COLUMN migration_history.checksum IS 'SHA-256 hash of migration conte
   async rollbackLastMigration(): Promise<void> {
     console.warn('⚠️  ROLLBACK: This operation is dangerous and may cause data loss!')
     
-    const { data, error } = await this.supabase
-      .from('migration_history')
-      .select('*')
-      .order('applied_at', { ascending: false })
-      .limit(1)
-      .single()
+    try {
+      await this.acquireLock()
+      
+      const result = await db.query(`
+        SELECT id, name, applied_at 
+        FROM public.migration_history 
+        ORDER BY id DESC 
+        LIMIT 1
+      `)
 
-    if (error || !data) {
-      throw new Error('No migrations to rollback')
+      if (result.rows.length === 0) {
+        throw new Error('No migrations to rollback')
+      }
+
+      const lastMigration = result.rows[0]
+      console.log(`Rolling back migration: ${lastMigration.name}`)
+      
+      // Remove from migration history
+      await db.query(`
+        DELETE FROM public.migration_history 
+        WHERE id = $1
+      `, [lastMigration.id])
+
+      console.log('⚠️  Migration record removed. Manual schema rollback may be required.')
+      console.log('   You may need to manually reverse the schema changes.')
+      
+    } finally {
+      await this.releaseLock()
     }
+  }
 
-    console.log(`Rolling back migration: ${data.filename}`)
+  /**
+   * Reset database by removing all migration records (DANGEROUS)
+   */
+  async resetMigrations(): Promise<void> {
+    console.warn('⚠️  RESET: This will remove ALL migration records!')
+    console.warn('   The schema will remain, but migration history will be lost.')
     
-    // Remove from migration history
-    const { error: deleteError } = await this.supabase
-      .from('migration_history')
-      .delete()
-      .eq('filename', data.filename)
+    try {
+      await this.acquireLock()
+      
+      const result = await db.query(`
+        DELETE FROM public.migration_history 
+        RETURNING name
+      `)
 
-    if (deleteError) {
-      throw new Error(`Failed to rollback migration record: ${deleteError.message}`)
+      console.log(`🗑️  Removed ${result.rowCount} migration records`)
+      console.log('   Database schema remains unchanged')
+      console.log('   You can now re-run migrations from scratch')
+      
+    } finally {
+      await this.releaseLock()
     }
+  }
 
-    console.log('⚠️  Migration record removed. Manual schema rollback may be required.')
+  /**
+   * Bootstrap command - only create schema and migration table
+   */
+  async bootstrapOnly(): Promise<void> {
+    console.log('🔄 Running bootstrap only...')
+    await this.bootstrap()
+    console.log('✅ Bootstrap completed')
   }
 }
 
@@ -304,6 +369,13 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const command = process.argv[2]
   
   switch (command) {
+    case 'bootstrap':
+      runner.bootstrapOnly().catch(error => {
+        console.error('Bootstrap failed:', error)
+        process.exit(1)
+      })
+      break
+
     case 'up':
       runner.runMigrations().catch(error => {
         console.error('Migration failed:', error)
@@ -331,13 +403,29 @@ if (import.meta.url === `file://${process.argv[1]}`) {
         process.exit(1)
       })
       break
+
+    case 'reset':
+      runner.resetMigrations().catch(error => {
+        console.error('Reset failed:', error)
+        process.exit(1)
+      })
+      break
       
     default:
-      console.log('Usage: tsx migrate.ts [up|verify|dry-run|rollback]')
-      console.log('  up      - Apply all pending migrations')
-      console.log('  verify  - Verify applied migrations integrity')
-      console.log('  dry-run - Show pending migrations without applying')
-      console.log('  rollback- Rollback last migration (DANGEROUS)')
+      console.log('Usage: tsx migrate.ts [command]')
+      console.log('')
+      console.log('Commands:')
+      console.log('  bootstrap  - Create database schema and migration table only')
+      console.log('  up         - Apply all pending migrations')
+      console.log('  verify     - Verify applied migrations integrity')
+      console.log('  dry-run    - Show pending migrations without applying')
+      console.log('  rollback   - Rollback last migration (DANGEROUS)')
+      console.log('  reset      - Remove all migration records (DANGEROUS)')
+      console.log('')
+      console.log('Examples:')
+      console.log('  pnpm db:bootstrap  # Create migration table')
+      console.log('  pnpm db:migrate    # Apply pending migrations')
+      console.log('  pnpm db:verify     # Check migration integrity')
       process.exit(1)
   }
 }

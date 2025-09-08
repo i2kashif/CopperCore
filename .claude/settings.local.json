@@ -25,7 +25,12 @@
       "mcp__puppeteer__puppeteer_screenshot",
       "mcp__puppeteer__puppeteer_fill",
       "mcp__puppeteer__puppeteer_click",
-      "Bash(pnpm db:verify:*)"
+      "Bash(pnpm db:verify:*)",
+      "Bash(pnpm db:setup:*)",
+      "Bash(lsof:*)",
+      "Bash(pnpm db:bootstrap:*)",
+      "Bash(psql:*)",
+      "mcp__openmemory__update_memory_abstract"
     ],
     "deny": [],
     "ask": []
