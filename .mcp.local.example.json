@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "brave_control": {
+      "command": "node",
+      "args": [
+        "/path/to/your/Library/Application Support/Claude/Claude Extensions/ant.dir.gh.tariqalagha.brave-browser-control/server/index.js"
+      ]
+    },
+    "context7": {
+      "command": "node",
+      "args": [
+        "/path/to/your/Library/Application Support/Claude/Claude Extensions/context7/dist/index.js"
+      ]
+    }
+  }
+}

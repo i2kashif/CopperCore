@@ -31,10 +31,11 @@ All work MUST run through the Task tool with these agents:
 
 - **Migrations:**  
   - Schema in `/db/schema` (TS + Drizzle)  
-  - `npm run db:gen` → generate migrations  
-  - `npm run db:apply` → apply via runner (no manual psql)  
+  - `pnpm db:generate` → generate migrations  
+  - `pnpm db:apply` → apply via runner (no manual psql)  
   - RLS/triggers in `/db/policies/*.sql`, included in batches  
-  - Seeds via `npm run db:seed`
+  - Seeds via `pnpm db:seed`
+  - Test harness in `/db/test/` with JWT fixtures for RLS validation
 
 - **Docs:** See [`docs/DB_GUIDE.md`](docs/DB_GUIDE.md) for data flow, RLS, troubleshooting.
 
@@ -57,16 +58,21 @@ Mandatory services:
 ⚠️ Log failures in `docs/logs/mcp-issues/`  
 ❌ Never skip an MCP step silently
 
+**Configuration:**
+- `.mcp.json` — Core services (portable, env-based)
+- `.mcp.local.json` — OS-specific paths (gitignored, optional)
+
 ---
 
-## 📑 Documentation Hierarchy
+## 📑 Documentation
 
-1. **PRD (`docs/PRD/PRD_v1.5.md`)**  
-2. **Implementation Checklist (`docs/IMPLEMENTATION_CHECKLIST.md`)**  
-3. **Traceability Matrix (`docs/Traceability_Matrix.md`)**  
-4. **CLAUDE.md (this guide)**  
-5. **ADRs (`/docs/adr/`)**  
-6. **Code**
+**Authority Hierarchy:**
+1. **PRD (`docs/PRD/PRD_v1.5.md`)** — Single source of truth
+2. **Implementation Checklist (`docs/Implementation_Checklist.md`)** — 20-step plan  
+3. **Traceability Matrix (`docs/Traceability_Matrix.md`)** — Requirements→Tests mapping
+4. **CLAUDE.md (this guide)** — AI development workflow
+
+**Complete File Reference:** See [`docs/FILE_INDEX.md`](docs/FILE_INDEX.md) for all project files and their purposes.
 
 Every feature implementation must:  
 1. Reference the checklist item  
@@ -147,3 +153,18 @@ Every feature implementation must:
 - Tests before code; tie to AT-* IDs  
 - Backend → Frontend → QA → Docs order  
 - Keep secrets in `.env`, not in repo
+
+---
+
+## 📊 Implementation Status
+
+**Step 0: Initialize Setup (Foundation) - ✅ COMPLETE**
+- Repo hygiene (README.md, documentation organization)
+- Environment & secrets management (.env, .mcp.json cleanup)
+- Database folder structure (/db/schema, /db/migrations, /db/policies, /db/seeds)
+- Seed script templates for test data
+- RLS harness with JWT fixtures for testing
+- CI/CD pipeline (GitHub Actions)
+- NPM scripts for database operations
+
+**Next: Step 1 - Login & Auth (JWT/RLS baseline)**

@@ -1,0 +1,180 @@
+name: CopperCore ERP - CI Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+env:
+  NODE_VERSION: '18'
+  PNPM_VERSION: '8'
+
+jobs:
+  test:
+    name: Test & Build
+    runs-on: ubuntu-latest
+    
+    # Ephemeral Supabase database for testing
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_DB: coppercore_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v3
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('**/package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-playwright-
+
+      - name: Setup test environment
+        run: |
+          cp .env.example .env
+          echo "DATABASE_URL=postgresql://postgres:postgres@localhost:5432/coppercore_test" >> .env
+          echo "NODE_ENV=test" >> .env
+          # Add test user passwords for seed script
+          echo "TEST_CEO_PASSWORD=admin123" >> .env
+          echo "TEST_DIRECTOR_PASSWORD=dir123456" >> .env
+          echo "TEST_FM_PASSWORD=fm123456" >> .env
+          echo "TEST_FW_PASSWORD=fw123456" >> .env
+          echo "TEST_OFFICE_PASSWORD=office123" >> .env
+          echo "TEST_FM_MULTI_PASSWORD=multi123" >> .env
+          
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+        
+      - name: Run database migrations
+        run: |
+          echo "🔧 Running database migrations..."
+          pnpm db:migrate
+
+      - name: Seed test database  
+        run: |
+          echo "🌱 Seeding test database..."
+          pnpm db:seed
+
+      - name: Run RLS tests
+        run: |
+          echo "🧪 Running RLS tests..."
+          pnpm test:rls
+
+      - name: Lint code
+        run: |
+          echo "🔍 Linting code..."
+          pnpm lint
+
+      - name: Type check
+        run: |
+          echo "📝 Type checking..."
+          pnpm typecheck
+
+      - name: Run unit tests
+        run: |
+          echo "🧪 Running unit tests..."
+          pnpm test:unit
+
+      - name: Run acceptance tests
+        run: |
+          echo "🧪 Running acceptance tests..."
+          pnpm exec vitest run tests/acceptance/
+
+      - name: Run E2E tests
+        run: |
+          echo "🎭 Running E2E tests..."
+          pnpm test:e2e
+
+      - name: Build application
+        run: |
+          echo "🏗️ Building application..."
+          pnpm build
+
+      # Artifact uploads for debugging
+      - name: Upload test results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: test-results
+          path: |
+            test-results/
+            playwright-report/
+            coverage/
+          retention-days: 7
+
+      - name: Upload build artifacts  
+        uses: actions/upload-artifact@v3
+        if: success()
+        with:
+          name: build-artifacts
+          path: |
+            dist/
+            build/
+          retention-days: 30
+
+  # Deployment job (placeholder)
+  deploy:
+    name: Deploy (Staging)
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.ref == 'refs/heads/develop' && success()
+    
+    steps:
+      - name: Placeholder deployment
+        run: |
+          echo "🚀 Deployment will be configured here"
+          echo "Will deploy to staging environment on develop branch"
+          
+  # Production deployment  
+  deploy-prod:
+    name: Deploy (Production)
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.ref == 'refs/heads/main' && success()
+    environment: production
+    
+    steps:
+      - name: Placeholder production deployment
+        run: |
+          echo "🚀 Production deployment will be configured here"
+          echo "Will deploy to production environment on main branch"
