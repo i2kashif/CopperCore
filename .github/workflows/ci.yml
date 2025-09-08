@@ -61,60 +61,74 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Cache Playwright browsers
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('**/package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-playwright-
+
       - name: Setup test environment
         run: |
           cp .env.example .env
           echo "DATABASE_URL=postgresql://postgres:postgres@localhost:5432/coppercore_test" >> .env
           echo "NODE_ENV=test" >> .env
+          # Add test user passwords for seed script
+          echo "TEST_CEO_PASSWORD=admin123" >> .env
+          echo "TEST_DIRECTOR_PASSWORD=dir123456" >> .env
+          echo "TEST_FM_PASSWORD=fm123456" >> .env
+          echo "TEST_FW_PASSWORD=fw123456" >> .env
+          echo "TEST_OFFICE_PASSWORD=office123" >> .env
+          echo "TEST_FM_MULTI_PASSWORD=multi123" >> .env
           
-      # Database setup (once we have migrations)
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+        
       - name: Run database migrations
         run: |
-          echo "🔧 Database migrations will be run here once implemented"
-          # pnpm db:migrate
-        continue-on-error: true
+          echo "🔧 Running database migrations..."
+          pnpm db:migrate
 
       - name: Seed test database  
         run: |
-          echo "🌱 Database seeding will be run here once implemented"
-          # pnpm db:seed
-        continue-on-error: true
+          echo "🌱 Seeding test database..."
+          pnpm db:seed
 
       - name: Run RLS tests
         run: |
-          echo "🧪 RLS tests will be run here once implemented" 
-          # pnpm test:rls
-        continue-on-error: true
+          echo "🧪 Running RLS tests..."
+          pnpm test:rls
 
       - name: Lint code
         run: |
-          echo "🔍 Linting will be run here once configured"
-          # pnpm lint
-        continue-on-error: true
+          echo "🔍 Linting code..."
+          pnpm lint
 
       - name: Type check
         run: |
-          echo "📝 Type checking will be run here once configured"
-          # pnpm typecheck
-        continue-on-error: true
+          echo "📝 Type checking..."
+          pnpm typecheck
 
       - name: Run unit tests
         run: |
-          echo "🧪 Unit tests will be run here once implemented"
-          # pnpm test:unit
-        continue-on-error: true
+          echo "🧪 Running unit tests..."
+          pnpm test:unit
+
+      - name: Run acceptance tests
+        run: |
+          echo "🧪 Running acceptance tests..."
+          pnpm exec vitest run tests/acceptance/
 
       - name: Run E2E tests
         run: |
-          echo "🎭 E2E tests will be run here once implemented"
-          # pnpm test:e2e
-        continue-on-error: true
+          echo "🎭 Running E2E tests..."
+          pnpm test:e2e
 
       - name: Build application
         run: |
-          echo "🏗️ Build will be run here once configured"
-          # pnpm build
-        continue-on-error: true
+          echo "🏗️ Building application..."
+          pnpm build
 
       # Artifact uploads for debugging
       - name: Upload test results

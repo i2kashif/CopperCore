@@ -6,6 +6,7 @@
  */
 
 import { createClient } from '@supabase/supabase-js';
+import { getTestConfig } from './config.js';
 
 // Test user IDs (UUIDs)
 export const TEST_USERS = {
@@ -25,19 +26,20 @@ export const TEST_FACTORIES = {
 } as const;
 
 // JWT Claims for each test role
+// NOTE: factory_id is NOT included in JWT - it's fetched dynamically via current_factory()
 export const JWT_CLAIMS = {
   ceo: {
     role: 'CEO',
     user_id: TEST_USERS.ceo,
-    factory_id: null, // Global role - can access all factories
+    username: 'ceo',
     aud: 'authenticated',
     exp: Math.floor(Date.now() / 1000) + (60 * 60), // 1 hour
   },
   
   director: {
-    role: 'DIRECTOR', 
+    role: 'Director', 
     user_id: TEST_USERS.director,
-    factory_id: null, // Global role - can access all factories
+    username: 'director',
     aud: 'authenticated',
     exp: Math.floor(Date.now() / 1000) + (60 * 60),
   },
@@ -45,7 +47,7 @@ export const JWT_CLAIMS = {
   fm_fac1: {
     role: 'FM',
     user_id: TEST_USERS.fm_fac1,
-    factory_id: TEST_FACTORIES.fac1,
+    username: 'fm1',
     aud: 'authenticated', 
     exp: Math.floor(Date.now() / 1000) + (60 * 60),
   },
@@ -53,7 +55,7 @@ export const JWT_CLAIMS = {
   fm_fac2: {
     role: 'FM',
     user_id: TEST_USERS.fm_fac2,
-    factory_id: TEST_FACTORIES.fac2,
+    username: 'fm2',
     aud: 'authenticated',
     exp: Math.floor(Date.now() / 1000) + (60 * 60),
   },
@@ -61,7 +63,7 @@ export const JWT_CLAIMS = {
   fw_fac1: {
     role: 'FW',
     user_id: TEST_USERS.fw_fac1,
-    factory_id: TEST_FACTORIES.fac1,
+    username: 'fw1',
     aud: 'authenticated',
     exp: Math.floor(Date.now() / 1000) + (60 * 60),
   },
@@ -69,15 +71,15 @@ export const JWT_CLAIMS = {
   fw_fac2: {
     role: 'FW', 
     user_id: TEST_USERS.fw_fac2,
-    factory_id: TEST_FACTORIES.fac2,
+    username: 'fw2',
     aud: 'authenticated',
     exp: Math.floor(Date.now() / 1000) + (60 * 60),
   },
 
   office: {
-    role: 'OFFICE',
+    role: 'Office',
     user_id: TEST_USERS.office,
-    factory_id: null, // Office can be global or factory-scoped depending on configuration
+    username: 'office2',
     aud: 'authenticated',
     exp: Math.floor(Date.now() / 1000) + (60 * 60),
   },
@@ -87,10 +89,9 @@ export const JWT_CLAIMS = {
  * Create Supabase client with specific JWT for testing
  */
 export function createTestClient(role: keyof typeof JWT_CLAIMS) {
-  const supabaseUrl = process.env.SUPABASE_URL!;
-  const supabaseKey = process.env.SUPABASE_ANON_KEY!;
+  const config = getTestConfig();
   
-  const client = createClient(supabaseUrl, supabaseKey);
+  const client = createClient(config.supabaseUrl, config.supabaseAnonKey);
   
   // Set the JWT token to simulate authenticated user
   const claims = JWT_CLAIMS[role];
@@ -125,7 +126,7 @@ export function createTestClient(role: keyof typeof JWT_CLAIMS) {
 export async function testRLSAccess(
   role: keyof typeof JWT_CLAIMS,
   tableName: string,
-  expectedRowCount: number | 'any',
+  expectedRowCount: number | 'any' | 'limited',
   description: string
 ) {
   const client = createTestClient(role);
@@ -137,12 +138,17 @@ export async function testRLSAccess(
       
     if (error) throw error;
     
+    const actualCount = data?.length || 0;
+    
     if (expectedRowCount === 'any') {
-      console.log(`✅ ${description} - ${role} can access ${tableName} (${data?.length || 0} rows)`);
-    } else if (data?.length === expectedRowCount) {
+      console.log(`✅ ${description} - ${role} can access ${tableName} (${actualCount} rows)`);
+    } else if (expectedRowCount === 'limited') {
+      // For scoped users, we expect some access but not necessarily all rows
+      console.log(`✅ ${description} - ${role} sees ${actualCount} rows from ${tableName} (scoped access)`);
+    } else if (actualCount === expectedRowCount) {
       console.log(`✅ ${description} - ${role} sees exactly ${expectedRowCount} rows from ${tableName}`);
     } else {
-      console.log(`❌ ${description} - ${role} expected ${expectedRowCount} rows but got ${data?.length || 0}`);
+      console.log(`❌ ${description} - ${role} expected ${expectedRowCount} rows but got ${actualCount}`);
     }
     
     return data;

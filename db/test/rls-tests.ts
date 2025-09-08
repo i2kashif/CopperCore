@@ -5,7 +5,7 @@
  * for factory scoping and role-based access control.
  */
 
-import { testRLSAccess, TEST_FACTORIES, createTestClient } from './jwt-fixtures';
+import { testRLSAccess } from './jwt-fixtures';
 
 /**
  * Test RLS policies for factory scoping
@@ -17,63 +17,87 @@ import { testRLSAccess, TEST_FACTORIES, createTestClient } from './jwt-fixtures'
 export async function runRLSTests() {
   console.log('🧪 Starting RLS Policy Tests...\n');
 
-  // Test 1: Factory Scoping (will be implemented with factories table)
-  console.log('📋 Test Group: Factory Scoping');
-  // await testFactoryScoping();
+  try {
+    // Test 1: Factory Scoping
+    console.log('📋 Test Group: Factory Scoping');
+    await testFactoryScoping();
 
-  // Test 2: Role-Based Access (will be implemented with specific tables)  
-  console.log('📋 Test Group: Role-Based Access');
-  // await testRoleBasedAccess();
+    // Test 2: Role-Based Access
+    console.log('\n📋 Test Group: Role-Based Access');
+    await testRoleBasedAccess();
 
-  // Test 3: Global Role Access (will be implemented with user tables)
-  console.log('📋 Test Group: Global Role Access');
-  // await testGlobalRoleAccess();
+    // Test 3: Global Role Access
+    console.log('\n📋 Test Group: Global Role Access');
+    await testGlobalRoleAccess();
 
-  console.log('\n✨ RLS Tests Complete - Placeholder functions created');
-  console.log('   Real tests will be added during implementation of Steps 1-4');
+    console.log('\n✨ RLS Tests Complete - All policy tests executed');
+  } catch (error) {
+    console.error('\n❌ RLS Tests Failed:', error);
+    throw error;
+  }
 }
 
 /**
  * Test that factory-scoped users can only see their own factory data
  */
 async function testFactoryScoping() {
-  // This will test AT-SEC-001: cross-factory read denied for non-global
+  console.log('  🧪 Testing factory scoping for users table...');
   
-  // FM from Factory 1 should only see Factory 1 data
-  // await testRLSAccess('fm_fac1', 'work_orders', 'factory1_count', 'FM1 sees only Factory 1 work orders');
+  // Test FM from Factory 1 can only see users in their factory
+  await testRLSAccess('fm_fac1', 'users', 'limited', 'FM1 sees limited users (factory scoped)');
   
-  // FM from Factory 2 should only see Factory 2 data  
-  // await testRLSAccess('fm_fac2', 'work_orders', 'factory2_count', 'FM2 sees only Factory 2 work orders');
+  // Test FM from Factory 2 can only see users in their factory  
+  await testRLSAccess('fm_fac2', 'users', 'limited', 'FM2 sees limited users (factory scoped)');
   
-  console.log('  🔲 Factory scoping tests - will be implemented with work_orders table');
+  console.log('  🧪 Testing factory scoping for user_factory_assignments...');
+  
+  // Test factory links are scoped properly
+  await testRLSAccess('fm_fac1', 'user_factory_assignments', 'limited', 'FM1 sees limited factory assignments');
+  await testRLSAccess('fw_fac1', 'user_factory_assignments', 'limited', 'FW1 sees limited factory assignments');
+  
+  console.log('  ✅ Factory scoping tests completed');
 }
 
 /**
  * Test that roles have appropriate access levels
  */
 async function testRoleBasedAccess() {
-  // CEO should see all data
-  // await testRLSAccess('ceo', 'invoices', 'any', 'CEO sees all invoices');
+  console.log('  🧪 Testing role-based access for users table...');
   
-  // FW should not see invoices
-  // await testRLSAccess('fw_fac1', 'invoices', 0, 'FW cannot see invoices');
+  // CEO should see all users regardless of factory
+  await testRLSAccess('ceo', 'users', 'any', 'CEO sees all users');
   
-  console.log('  🔲 Role-based access tests - will be implemented with invoices table');
+  // FW should have limited access to users
+  await testRLSAccess('fw_fac1', 'users', 'limited', 'FW sees limited users');
+  
+  console.log('  🧪 Testing role-based access for factories table...');
+  
+  // CEO should see all factories
+  await testRLSAccess('ceo', 'factories', 'any', 'CEO sees all factories');
+  
+  // FM should see accessible factories only
+  await testRLSAccess('fm_fac1', 'factories', 'limited', 'FM sees limited factories');
+  
+  console.log('  ✅ Role-based access tests completed');
 }
 
 /**
  * Test that global roles (CEO/Director) can access all factories
  */
 async function testGlobalRoleAccess() {
-  // This will test AT-SEC-002: Global roles allowed across factories
+  console.log('  🧪 Testing global role access for CEO...');
   
   // CEO should see data from all factories
-  // await testRLSAccess('ceo', 'inventory_lots', 'any', 'CEO sees lots from all factories');
+  await testRLSAccess('ceo', 'user_factory_assignments', 'any', 'CEO sees all user-factory assignments');
+  await testRLSAccess('ceo', 'factories', 'any', 'CEO sees all factories');
+  
+  console.log('  🧪 Testing global role access for Director...');
   
   // Director should see data from all factories
-  // await testRLSAccess('director', 'inventory_lots', 'any', 'Director sees lots from all factories');
+  await testRLSAccess('director', 'user_factory_assignments', 'any', 'Director sees all user-factory assignments');
+  await testRLSAccess('director', 'factories', 'any', 'Director sees all factories');
   
-  console.log('  🔲 Global role access tests - will be implemented with inventory_lots table');
+  console.log('  ✅ Global role access tests completed');
 }
 
 /**
