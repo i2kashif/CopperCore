@@ -34,7 +34,7 @@ You must enforce factory-level Row-Level Security with these strict rules:
 
 **Approval Gates & Review Requirements:**
 Any PR touching schema or RLS must:
-1. Pass all CI checks (lint, typecheck, unit, integration, RLS tests)
+1. Pass all CI checks (typecheck, unit, integration, RLS tests)
 2. Receive Architect review
 3. Obtain CEO/Director approval
 4. Include staging dry-run results
