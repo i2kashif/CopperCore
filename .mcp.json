@@ -60,6 +60,14 @@
       "env": {
         "API_KEY": "sk-user-vQol3yCeRq5naLiXMk1RvmS1JZ4721oB8OFMEkWFQF_bHQrr8OUZtRgRALpru25M1vwt-xfC1MiUaDqQkR_rrL_I3eNe0Bltq6k_SFpEVxIAfDyNjV-Dsjw9J8pEtsVnIbE"
       }
+    },
+    "puppeteer": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-puppeteer"]
+    },
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"]
     }
   }
 }
