@@ -44,7 +44,6 @@ All work MUST run through the Task tool with these agents:
 ## 🔌 MCP Services
 
 Mandatory services:
-- Supabase MCP → schema ops, queries
 - TestSprite MCP → test generation & execution
 - MagicUI MCP → frontend assistance
 - Puppeteer MCP → browser/E2E validation

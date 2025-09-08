@@ -30,7 +30,9 @@
       "Bash(lsof:*)",
       "Bash(pnpm db:bootstrap:*)",
       "Bash(psql:*)",
-      "mcp__openmemory__update_memory_abstract"
+      "mcp__openmemory__update_memory_abstract",
+      "Bash(npx tailwindcss init:*)",
+      "Bash(pnpm exec tailwindcss init:*)"
     ],
     "deny": [],
     "ask": []
