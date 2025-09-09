@@ -32,7 +32,11 @@
       "Bash(psql:*)",
       "mcp__openmemory__update_memory_abstract",
       "Bash(npx tailwindcss init:*)",
-      "Bash(pnpm exec tailwindcss init:*)"
+      "Bash(pnpm exec tailwindcss init:*)",
+      "Bash(node:*)",
+      "Bash(pnpm exec playwright test:*)",
+      "Bash(pnpm exec tsc:*)",
+      "Bash(npm install:*)"
     ],
     "deny": [],
     "ask": []

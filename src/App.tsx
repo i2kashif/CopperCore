@@ -11,6 +11,7 @@ import LoginForm from './components/auth/LoginForm'
 import FactorySelector from './components/auth/FactorySelector'
 import CEODashboard from './components/dashboard/CEODashboard'
 import FactoryDashboard from './components/dashboard/FactoryDashboard'
+import CompanyManagement from './components/company/CompanyManagement'
 
 function App() {
   // Initialize auth-related side effects (session refresh, factory switching listeners)
@@ -64,7 +65,35 @@ function App() {
           } 
         />
         
-        {/* Role-specific protected routes */}
+        {/* Company Management Routes */}
+        <Route 
+          path="/company/*" 
+          element={
+            <ProtectedRoute requiredRoles={['CEO', 'Director']}>
+              <CompanyManagement />
+            </ProtectedRoute>
+          } 
+        />
+
+        <Route 
+          path="/company/factories" 
+          element={
+            <ProtectedRoute requiredRoles={['CEO', 'Director']}>
+              <CompanyManagement />
+            </ProtectedRoute>
+          } 
+        />
+
+        <Route 
+          path="/company/users" 
+          element={
+            <ProtectedRoute requiredRoles={['CEO', 'Director']}>
+              <CompanyManagement />
+            </ProtectedRoute>
+          } 
+        />
+        
+        {/* Other Role-specific protected routes */}
         <Route 
           path="/admin/*" 
           element={
@@ -89,6 +118,38 @@ function App() {
                 <div className="card max-w-md w-full mx-4">
                   <div className="card-body text-center">
                     <h2 className="text-xl font-semibold mb-4">Factory Management</h2>
+                    <p className="text-gray-600">Coming soon...</p>
+                  </div>
+                </div>
+              </div>
+            </ProtectedRoute>
+          } 
+        />
+
+        <Route 
+          path="/reports" 
+          element={
+            <ProtectedRoute requiredRoles={['CEO', 'Director']}>
+              <div className="min-h-screen flex items-center justify-center">
+                <div className="card max-w-md w-full mx-4">
+                  <div className="card-body text-center">
+                    <h2 className="text-xl font-semibold mb-4">System Reports</h2>
+                    <p className="text-gray-600">Coming soon...</p>
+                  </div>
+                </div>
+              </div>
+            </ProtectedRoute>
+          } 
+        />
+
+        <Route 
+          path="/settings" 
+          element={
+            <ProtectedRoute requiredRoles={['CEO', 'Director']}>
+              <div className="min-h-screen flex items-center justify-center">
+                <div className="card max-w-md w-full mx-4">
+                  <div className="card-body text-center">
+                    <h2 className="text-xl font-semibold mb-4">System Settings</h2>
                     <p className="text-gray-600">Coming soon...</p>
                   </div>
                 </div>

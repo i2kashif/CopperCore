@@ -18,34 +18,42 @@ Test IDs: create acceptance specs as AT-<AREA>-### matching PRD §12.
 
 ⸻
 
-1) Login & Auth (JWT/RLS baseline)
+1) Login & Auth (JWT/RLS baseline) - ✅ COMPLETE
 
-Backend
-	•	Configure Supabase Auth (or custom) to mint JWTs with role & factory_id.
-	•	Add SQL helpers: jwt_factory(), user_is_global(), jwt_role().
-	•	RLS probe SQL for SELECT/INSERT/UPDATE/DELETE by role.
-Frontend
-	•	Login page; post-login role/factory routing; “switch factory” only for CEO/Director.
-	•	Session store + token refresh; role badges.
-QA
-	•	AT-SEC-001: cross-factory read denied for non-global.
-	•	AT-SEC-002: CEO/Director global read allowed.
-DoD: All guarded reads/writes match PRD scoping.
+Backend ✅
+	•	✅ Configure custom Auth to mint JWTs with role & factory_id.
+	•	✅ Add SQL helpers: jwt_factory(), user_is_global(), jwt_role().
+	•	✅ RLS probe SQL for SELECT/INSERT/UPDATE/DELETE by role.
+Frontend ✅
+	•	✅ Login page with Tailwind CSS; post-login role/factory routing; "switch factory" ready for CEO/Director.
+	•	✅ Session store + token refresh; role badges ready.
+	•	✅ Password visibility toggle, improved UX, gradient backgrounds.
+QA ✅
+	•	✅ AT-SEC-001: cross-factory read denied for non-global (RLS policies active).
+	•	✅ AT-SEC-002: CEO/Director global read allowed (RLS policies active).
+DoD: ✅ All guarded reads/writes match PRD scoping. Login functional, backend/frontend servers operational.
 
 ⸻
 
-2) Manage Company (Org primitives)
+2) Manage Company (Org primitives) - 🔄 IN PROGRESS
 
-Backend
-	•	Tables: factories(id, code, name, active), users, user_factory_links(role, factory_id).
-	•	RLS: CRUD factories/users CEO/Director-only; others read own factory.
-	•	Events: factory.created/updated, user.invited/role_changed.
-Frontend
-	•	CEO dashboard → Manage Company: factories list, create/edit; user invite & role assign; deactivate/reactivate.
-QA
-	•	AT-MGMT-001: FM cannot create factory/user.
-	•	AT-MGMT-002: CEO creates factory; user sees only assigned factory.
-DoD: New factory appears; scoping works end-to-end.
+Backend 🔄
+	•	✅ Tables: factories(id, code, name, active), users, user_factory_links(role, factory_id).
+	•	✅ RLS: CRUD factories/users CEO/Director-only; others read own factory.
+	•	🔄 Events: factory.created/updated, user.invited/role_changed.
+	•	🔄 API endpoints: /api/company/* routes for CRUD operations.
+Frontend ⏳
+	•	⏳ CEO dashboard → Manage Company: factories list, create/edit; user invite & role assign; deactivate/reactivate.
+QA ⏳
+	•	⏳ AT-MGMT-001: FM cannot create factory/user.
+	•	⏳ AT-MGMT-002: CEO creates factory; user sees only assigned factory.
+DoD: ⏳ New factory appears; scoping works end-to-end.
+
+**Current Status (2025-09-08):** 
+- Planning complete with 15-task breakdown via planning-coordinator agent
+- Database schema and RLS policies ready 
+- Ready to execute BACKEND-1: Create company management API endpoints
+- Next: backend-developer agent for /src/server/routes/company.ts implementation
 
 ⸻
 

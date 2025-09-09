@@ -8,6 +8,7 @@ import cors from 'cors'
 import helmet from 'helmet'
 import { config } from 'dotenv'
 import { authRouter } from './routes/auth.js'
+import { companyRouter } from './routes/company.js'
 import { errorHandler } from './middleware/errorHandler.js'
 import { createDbConnection } from './lib/database.js'
 
@@ -37,6 +38,7 @@ app.get('/health', (req, res) => {
 
 // API routes
 app.use('/api/auth', authRouter)
+app.use('/api/company', companyRouter)
 
 // Error handling middleware
 app.use(errorHandler)
@@ -58,6 +60,7 @@ async function startServer() {
       console.log(`🚀 CopperCore API server running on port ${PORT}`)
       console.log(`📍 Health check: http://localhost:${PORT}/health`)
       console.log(`🔐 Auth endpoints: http://localhost:${PORT}/api/auth`)
+      console.log(`🏭 Company endpoints: http://localhost:${PORT}/api/company`)
     })
   } catch (error) {
     console.error('❌ Failed to start server:', error)

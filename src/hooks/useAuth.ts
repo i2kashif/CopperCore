@@ -62,7 +62,7 @@ export function useUserFactories(userId: string | undefined) {
   
   const query = useQuery({
     queryKey: authKeys.factories(userId || ''),
-    queryFn: () => authService.getUserFactories(userId!),
+    queryFn: () => authService.getUserFactories(),
     enabled: !!userId
   })
   
